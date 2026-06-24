@@ -15,6 +15,7 @@ const TYPES = [
   // tall standing pieces: base = front, _side = thin vertical-axis profile
   "lockers_side", "bookshelf_side", "filingCabinet_side", "shelving_side",
   "serverRack_side", "vending_side", "electricalPanel_side",
+  "chair_side",
 ];
 const FALLBACK = "box";
 

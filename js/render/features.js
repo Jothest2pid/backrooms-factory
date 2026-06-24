@@ -8,13 +8,22 @@ export function drawFeatures(ctx, room) {
   const pal = room.palette;
   for (const ft of room.features) {
     if (ft.type === "pillar") {
-      // solid column in the wall material with a trim outline (no hole look)
+      // a column that juts UP like the walls (same treatment, no side faces)
+      const H = 1.2, r = ft.r;
       ctx.fillStyle = pal.wall;
-      ctx.beginPath(); ctx.arc(ft.x, ft.y, ft.r, 0, Math.PI * 2); ctx.fill();
-      ctx.lineWidth = 0.14; ctx.strokeStyle = pal.trim;
-      ctx.beginPath(); ctx.arc(ft.x, ft.y, ft.r, 0, Math.PI * 2); ctx.stroke();
-      ctx.lineWidth = 0.07; ctx.strokeStyle = "rgba(255,255,235,0.18)"; // faint top highlight
-      ctx.beginPath(); ctx.arc(ft.x, ft.y, ft.r * 0.6, Math.PI * 1.1, Math.PI * 1.7); ctx.stroke();
+      ctx.fillRect(ft.x - r, ft.y - H, r * 2, H);                   // shaft body
+      ctx.beginPath(); ctx.arc(ft.x, ft.y, r, 0, Math.PI * 2); ctx.fill(); // rounded base
+      ctx.fillStyle = "rgba(0,0,0,0.18)";                           // shaded side
+      ctx.fillRect(ft.x + r * 0.4, ft.y - H, r * 0.6, H);
+      ctx.fillStyle = pal.trim;                                     // top-cap rim
+      ctx.beginPath(); ctx.ellipse(ft.x, ft.y - H, r, r * 0.5, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = pal.wall;                                     // top-cap face
+      ctx.beginPath(); ctx.ellipse(ft.x, ft.y - H, r * 0.84, r * 0.4, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 0.06; ctx.strokeStyle = pal.trim;             // shaft edges
+      ctx.beginPath();
+      ctx.moveTo(ft.x - r, ft.y - H); ctx.lineTo(ft.x - r, ft.y);
+      ctx.moveTo(ft.x + r, ft.y - H); ctx.lineTo(ft.x + r, ft.y);
+      ctx.stroke();
     } else if (ft.type === "pitfall") {
       if (ft.water) drawWater(ctx, ft);
       else drawPit(ctx, ft);

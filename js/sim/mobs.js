@@ -5,20 +5,26 @@
 
 import { dist } from "../core/vec.js";
 
-// entity kinds — stats per type (sprites loaded by kind in render/mobsprite.js)
+// rotate angle `cur` toward `target` by at most `step` radians (shortest way)
+function turnToward(cur, target, step) {
+  let diff = ((target - cur + Math.PI) % (2 * Math.PI)) - Math.PI;
+  if (Math.abs(diff) <= step) return target;
+  return cur + Math.sign(diff) * step;
+}
+
+// entity kinds — stats per type. blindman is the main enemy: a blind doppelganger
+// of the player (same silhouette), player-sized, that still hunts you down.
 export const MOB_TYPES = {
-  shambler: { hp: 24, speed: 3.0, dmg: 7, r: 0.38 },  // baseline
-  watcher:  { hp: 32, speed: 2.4, dmg: 9, r: 0.42 },  // tall, slow, hits hard
+  blindman: { hp: 28, speed: 3.2, dmg: 8, r: 0.3 },   // MAIN — player-sized hitbox
+  shambler: { hp: 24, speed: 3.0, dmg: 7, r: 0.38 },
   hound:    { hp: 16, speed: 5.2, dmg: 6, r: 0.34 },  // fast rusher
-  crawler:  { hp: 12, speed: 4.4, dmg: 5, r: 0.30 },  // small, skittery
   husk:     { hp: 50, speed: 1.8, dmg: 13, r: 0.52 }, // heavy tank
 };
 function pickKind(rng) {
   const r = rng();
-  if (r < 0.40) return "shambler";
-  if (r < 0.62) return "watcher";
-  if (r < 0.80) return "hound";
-  if (r < 0.91) return "crawler";
+  if (r < 0.70) return "blindman"; // the main enemy
+  if (r < 0.85) return "shambler";
+  if (r < 0.95) return "hound";
   return "husk";
 }
 
@@ -47,7 +53,28 @@ export function tickMobs(game, dt) {
   for (const m of mobs) {
     m.cool -= dt;
     const dx = p.x - m.x, dy = p.y - m.y, d = Math.hypot(dx, dy) || 1;
-    if (d > 0.6) { const s = m.speed * dt; m.x += (dx / d) * s; m.y += (dy / d) * s; }
+    if (m.kind === "blindman") {
+      // blind pathing: only re-aims every so often (delay) and turns slowly toward
+      // its target heading, so it overshoots corners and can be juked.
+      m._rt = (m._rt || 0) - dt;
+      if (m._rt <= 0) { m._tAng = Math.atan2(dy, dx); m._rt = 0.7; }
+      if (m._hAng == null) m._hAng = m._tAng;
+      m._hAng = turnToward(m._hAng, m._tAng, 2.4 * dt); // ~2.4 rad/s turn rate
+      if (d > 0.5) {
+        const s = m.speed * dt;
+        m.x += Math.cos(m._hAng) * s; m.y += Math.sin(m._hAng) * s;
+        m.dir = { x: Math.cos(m._hAng), y: Math.sin(m._hAng) };
+        m.animClock = (m.animClock || 0) + dt;
+      }
+    } else if (d > 0.6) { // other kinds: direct beeline chase
+      const s = m.speed * dt;
+      m.x += (dx / d) * s; m.y += (dy / d) * s;
+      m.dir = { x: dx / d, y: dy / d };
+      m.animClock = (m.animClock || 0) + dt;
+    }
+    // entities can't leave the room (no slipping through doorways)
+    m.x = Math.max(m.r, Math.min(room.w - m.r, m.x));
+    m.y = Math.max(m.r, Math.min(room.h - m.r, m.y));
     if (d < m.r + 0.4 && m.cool <= 0) { game.takeDamage(m.dmg); m.cool = 0.8; }
   }
   room.mobs = mobs.filter((m) => m.hp > 0);

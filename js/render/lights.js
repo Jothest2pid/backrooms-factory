@@ -14,6 +14,7 @@ export function drawLight(ctx, light, time) {
     { x: light.x + hw, y: light.y + hh }, { x: light.x - hw, y: light.y + hh },
   ];
   ctx.save();
+  ctx.globalAlpha = 0.5; // ceiling fixtures sit overhead — half opacity
   ctx.shadowBlur = 20;
   ctx.shadowColor = `rgba(255,248,210,${0.5 * b})`;
   poly(ctx, pts);

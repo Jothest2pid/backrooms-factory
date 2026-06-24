@@ -9,9 +9,12 @@ import { drawEntities } from "./entities.js";
 import { drawFurniture } from "./furniture.js";
 import { drawPlayer } from "./playerMarker.js";
 import { getMobSprite } from "./mobsprite.js";
+import { CharSheet } from "./charsheet.js";
 
 // placeholder tints per mob kind (until a sprite is dropped in)
 const MOB_TINT = { shambler: "#16121c", watcher: "#241a30", hound: "#3a1a18", crawler: "#1a2620", husk: "#2a2620" };
+// humanoid enemies that use a 4-direction walk sheet
+const CHAR_SHEETS = { blindman: new CharSheet("sprites/people/blindman/walk.png") };
 
 export class Renderer {
   constructor(canvas) {
@@ -183,18 +186,26 @@ export class Renderer {
     lx.fillRect(0, 0, this.cw, this.ch);
 
     lx.globalCompositeOperation = "destination-out";
-    const lb = game.lightBonus ? game.lightBonus() : 0;      // trinket carry-light
-    this.punchLight(lx, cx, cy, (3.0 + lb) * PXn);           // awareness around you
-    const range = game.visionRange ? game.visionRange() : 14; // goggles/phone widen it
-    const d = player.dir || { x: 0, y: 1 };
-    this.punchCone(lx, cx, cy, range * PXn, Math.atan2(d.y, d.x), 0.62); // forward cone
-    const sel = game.selectedItem && game.selectedItem();    // held torch/lantern widens it
-    if (sel === "torch" || sel === "lantern") this.punchLight(lx, cx, cy, (sel === "lantern" ? 10 : 7.5) * PXn);
+    const dark = game.current.dark;
+    const lb = game.lightBonus ? game.lightBonus() : 0;       // trinket carry-light
+    // small awareness bubble — tiny in the dark (you can't see without a light)
+    this.punchLight(lx, cx, cy, ((dark ? 1.6 : 2.6) + lb) * PXn, dark ? 0.8 : 1);
+    if (!dark) {
+      // the vision cone only reveals where there is ambient light (a lit room)
+      const range = game.visionRange ? game.visionRange() : 14;
+      const d = player.dir || { x: 0, y: 1 };
+      this.punchCone(lx, cx, cy, range * PXn, Math.atan2(d.y, d.x), 0.62);
+      // ceiling tubes actually give light now (gentle ambient around each)
+      for (const l of game.current.lights)
+        this.punchLight(lx, cx + (l.x - player.pos.x) * PXn, cy + (l.y - player.pos.y) * PXn, 4.5 * PXn, 0.55);
+    }
+    const sel = game.selectedItem && game.selectedItem();    // held torch/lantern
+    if (sel === "torch" || sel === "lantern") this.punchLight(lx, cx, cy, (sel === "lantern" ? 10 : 7.5) * PXn, 1);
     for (const e of game.current.entities) {                 // placed lights cut through
       if (!e.light) continue;
       const sx = cx + (e.tx + (e.w || 1) / 2 - player.pos.x) * PXn;
       const sy = cy + (e.ty + (e.h || 1) / 2 - player.pos.y) * PXn;
-      this.punchLight(lx, sx, sy, (e.light + 2) * PXn);
+      this.punchLight(lx, sx, sy, (e.light + 2) * PXn, 1);
     }
     lx.globalCompositeOperation = "source-over";
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
@@ -206,9 +217,8 @@ export class Renderer {
   punchCone(lx, sx, sy, r, ang, half) {
     const g = lx.createRadialGradient(sx, sy, r * 0.1, sx, sy, r);
     g.addColorStop(0, "rgba(0,0,0,1)");
-    g.addColorStop(0.35, "rgba(0,0,0,0.85)");
-    g.addColorStop(0.65, "rgba(0,0,0,0.45)");
-    g.addColorStop(1, "rgba(0,0,0,0)");
+    g.addColorStop(0.72, "rgba(0,0,0,0.95)"); // clear most of the way...
+    g.addColorStop(1, "rgba(0,0,0,0)");        // ...then a quick fade at the rim
     lx.fillStyle = g;
     lx.beginPath();
     lx.moveTo(sx, sy);
@@ -222,6 +232,10 @@ export class Renderer {
   drawMobs(ctx, room, xf) {
     for (const m of room.mobs) {
       const p = xf.apply(m);
+      const sheet = CHAR_SHEETS[m.kind];
+      if (sheet && sheet.draw(ctx, p.x, p.y, m.dir, true, m.animClock, 1.7, 0.34)) {
+        // hp bar handled below
+      } else {
       const img = getMobSprite(m.kind || "shambler");
       if (img) {
         const s = m.r * 2.6;
@@ -233,6 +247,7 @@ export class Renderer {
         ctx.beginPath(); ctx.arc(p.x, p.y, m.r, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = "#e0503a";
         ctx.beginPath(); ctx.arc(p.x - 0.13, p.y - 0.05, 0.06, 0, Math.PI * 2); ctx.arc(p.x + 0.13, p.y - 0.05, 0.06, 0, Math.PI * 2); ctx.fill();
+      }
       }
       if (m.hp < m.maxHp) {
         ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillRect(p.x - m.r, p.y - m.r - 0.22, m.r * 2, 0.1);
@@ -258,10 +273,10 @@ export class Renderer {
     ctx.restore();
   }
 
-  punchLight(lx, sx, sy, r) {
+  punchLight(lx, sx, sy, r, strength = 1) {
     const g = lx.createRadialGradient(sx, sy, r * 0.25, sx, sy, r);
-    g.addColorStop(0, "rgba(0,0,0,1)");
-    g.addColorStop(0.7, "rgba(0,0,0,0.85)");
+    g.addColorStop(0, `rgba(0,0,0,${strength})`);
+    g.addColorStop(0.7, `rgba(0,0,0,${strength * 0.85})`);
     g.addColorStop(1, "rgba(0,0,0,0)");
     lx.fillStyle = g;
     lx.beginPath();
@@ -358,23 +373,35 @@ export class Renderer {
     if (drew) drawEntities(ctx, room, xf.t.x, xf.t.y);
     if (drew && room._string && room._string.length) this.drawString(ctx, room, xf);
     if (drew && room.mobs && room.mobs.length) this.drawMobs(ctx, room, xf);
-    if (drew) this.drawTopWall(ctx, room, xf);
+    if (drew) this.drawRoomWalls(ctx, room, xf);
     ctx.restore();
     if (drew) { m.roomsDrawn++; room._seenFrame = this._frame; }
   }
 
-  // a thin wall along the room's top edge, stretched up a little (no gap with the
-  // floor) so every room reads as having a back wall behind it.
-  drawTopWall(ctx, room, xf) {
+  // top + bottom walls with doorway cutouts. The TOP wall is tall so you can see
+  // the door holes punched through it; the BOTTOM wall is short (current height).
+  drawRoomWalls(ctx, room, xf) {
     const p = room.palette || {};
-    const h = 0.5; // how far it stretches up
-    const x = xf.t.x, y = xf.t.y;
-    ctx.fillStyle = p.wall || "#cfc77f";
-    ctx.fillRect(x, y - h, room.w, h);
-    ctx.fillStyle = p.trim || "#8d8645"; // darker outline only on the very top
-    ctx.fillRect(x, y - h, room.w, 0.09);
-    ctx.fillStyle = "rgba(0,0,0,0.22)"; // soft shadow where it meets the floor
-    ctx.fillRect(x, y - 0.06, room.w, 0.06);
+    const x0 = xf.t.x, y0 = xf.t.y;
+    const TOP = 1.3, BOT = 0.5;
+
+    // wall segments along an x-axis edge, leaving gaps where doors are
+    const segs = (side) => {
+      const spans = room.doors.filter((d) => d.side === side)
+        .map((d) => [d.center - d.width / 2, d.center + d.width / 2]).sort((a, b) => a[0] - b[0]);
+      const out = []; let cx = 0;
+      for (const [a, b] of spans) { if (a > cx) out.push([cx, a]); cx = Math.max(cx, b); }
+      if (cx < room.w) out.push([cx, room.w]);
+      return out;
+    };
+    const band = (a, b, by, bh) => {
+      ctx.fillStyle = p.wall || "#cfc77f"; ctx.fillRect(x0 + a, by, b - a, bh);
+      ctx.fillStyle = p.trim || "#8d8645"; ctx.fillRect(x0 + a, by, b - a, 0.1); // lit top edge
+    };
+    for (const [a, b] of segs("N")) band(a, b, y0 - TOP, TOP);            // tall top wall
+    for (const [a, b] of segs("S")) band(a, b, y0 + room.h, BOT);         // short bottom wall
+    ctx.fillStyle = "rgba(0,0,0,0.22)"; // shadow where the top wall meets the floor
+    for (const [a, b] of segs("N")) ctx.fillRect(x0 + a, y0 - 0.06, b - a, 0.06);
   }
 
   // Free the baked bitmaps + material caches of rooms we haven't drawn in a

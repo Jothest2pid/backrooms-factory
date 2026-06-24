@@ -210,7 +210,7 @@ export class Game {
     if (tgt && !this.inReach(tgt.x, tgt.y)) { this.lastEvent = "too far — move closer"; return; }
     const spd = this.toolSpeed() * (1 + this.effect("mineSpeed")); // tools + powered gauntlet
     if (hovered && hovered.kind === "mob") { meleeMob(this, hovered.ref, toolStats(this.equippedTool()).melee + this.effect("melee")); this.actCD = 0.45; return; }
-    if (hovered && hovered.kind === "ore") { this.mine(hovered.ref); this.actCD = 0.6 / spd; return; }
+    if (hovered && hovered.kind === "ore") { this.mine(hovered.ref, hovered.curve); this.actCD = 0.6 / spd; return; }
     if (hovered && hovered.kind === "item") { this.hit(hovered.ref); this.actCD = 0.45 / spd; return; }
     if (hovered && hovered.kind === "entity") { this.deconstruct(hovered.ref); this.actCD = 0.3; return; }
     if (hovered && hovered.kind === "feature") { this.mineFeature(hovered); this.actCD = 0.7 / spd; return; }
@@ -277,8 +277,9 @@ export class Game {
     this.lastEvent = `disassembled ${itemInfo(f.type).name} (+${got.join(", ")})`;
   }
 
-  // mine an ore deposit -> resources into inventory (stygium/unobtanium need a pick)
-  mine(ore) {
+  // mine an ore deposit -> resources into inventory (stygium/unobtanium need a pick).
+  // mining a curve/edge cell of the vein yields less than the solid core.
+  mine(ore, curve) {
     const room = this.current;
     const i = room.ores.indexOf(ore);
     if (i < 0) return;
@@ -289,9 +290,10 @@ export class Game {
     }
     room.ores.splice(i, 1);
     room._mat = null; room._chunks = null;
-    this.give(spec.resource, spec.yield);
+    const yld = curve ? Math.ceil(spec.yield / 2) : spec.yield;
+    this.give(spec.resource, yld);
     telemetry.log("mine", { ore: spec.resource });
-    this.lastEvent = `mined ${spec.name} (+${spec.yield} ${spec.resource})`;
+    this.lastEvent = `mined ${spec.name} (+${yld} ${spec.resource})`;
   }
 
   // strip carpet by hand or axe: intact -> torn -> bare concrete. each step

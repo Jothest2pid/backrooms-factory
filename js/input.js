@@ -7,9 +7,15 @@ export class Input {
     this._click = false;          // pending left-click  (inspect / build)
     this._rclick = false;         // pending right-click (use tool: disassemble/mine)
 
+    this._dirOrder = []; // movement tokens in press order (most recent last)
+    const TOKEN = { w: "up", arrowup: "up", s: "down", arrowdown: "down", a: "left", arrowleft: "left", d: "right", arrowright: "right" };
+
     window.addEventListener("keydown", (e) => {
-      this.keys.add(e.key.toLowerCase());
-      if (["arrowup", "arrowdown", "arrowleft", "arrowright"].includes(e.key.toLowerCase())) e.preventDefault();
+      const k = e.key.toLowerCase();
+      this.keys.add(k);
+      const t = TOKEN[k];
+      if (t) { this._dirOrder = this._dirOrder.filter((x) => x !== t); this._dirOrder.push(t); }
+      if (["arrowup", "arrowdown", "arrowleft", "arrowright"].includes(k)) e.preventDefault();
     });
     window.addEventListener("keyup", (e) => this.keys.delete(e.key.toLowerCase()));
     window.addEventListener("blur", () => this.keys.clear());
@@ -21,14 +27,19 @@ export class Input {
 
   has(...k) { return k.some((x) => this.keys.has(x)); }
 
-  // movement intent in fixed (north-up) world axes
+  // movement intent — FOUR-directional: the most recently pressed of the held
+  // directions wins, so holding two keys never produces a diagonal.
   dir() {
-    let x = 0, y = 0;
-    if (this.has("w", "arrowup")) y -= 1;
-    if (this.has("s", "arrowdown")) y += 1;
-    if (this.has("a", "arrowleft")) x -= 1;
-    if (this.has("d", "arrowright")) x += 1;
-    return { x, y };
+    const active = {
+      up: this.has("w", "arrowup"), down: this.has("s", "arrowdown"),
+      left: this.has("a", "arrowleft"), right: this.has("d", "arrowright"),
+    };
+    const VEC = { up: { x: 0, y: -1 }, down: { x: 0, y: 1 }, left: { x: -1, y: 0 }, right: { x: 1, y: 0 } };
+    for (let i = this._dirOrder.length - 1; i >= 0; i--) {
+      const t = this._dirOrder[i];
+      if (active[t]) return { ...VEC[t] };
+    }
+    return { x: 0, y: 0 };
   }
 
   run() { return this.keys.has("shift"); }

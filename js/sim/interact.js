@@ -53,11 +53,12 @@ export function pickInteractable(room, pt) {
   // ore under the cursor — match the rendered plus-shape (ore + 1-cell dilation),
   // so the curved corners that reveal ore under carpet are mineable too
   const tx = Math.floor(pt.x), ty = Math.floor(pt.y);
-  const ore = room.ores.find((o) => o.tx === tx && o.ty === ty)
-    || room.ores.find((o) => Math.abs(o.tx - tx) + Math.abs(o.ty - ty) === 1);
+  let ore = room.ores.find((o) => o.tx === tx && o.ty === ty), curve = false;
+  if (!ore) { ore = room.ores.find((o) => Math.abs(o.tx - tx) + Math.abs(o.ty - ty) === 1); curve = true; }
   if (ore) {
     const s = ORES[ore.type];
-    return { kind: "ore", ref: ore, x: tx + 0.5, y: ty + 0.5, w: 1, h: 1, info: { name: s.name, yields: `${s.yield} ${s.resource}`, pickup: true } };
+    const yld = curve ? Math.ceil(s.yield / 2) : s.yield; // edge/curve cells give less
+    return { kind: "ore", ref: ore, curve, x: tx + 0.5, y: ty + 0.5, w: 1, h: 1, info: { name: s.name, yields: `${yld} ${s.resource}`, pickup: true } };
   }
   return null;
 }
