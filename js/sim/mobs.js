@@ -5,7 +5,24 @@
 
 import { dist } from "../core/vec.js";
 
-// populate a dark room with shamblers the first time it's entered
+// entity kinds — stats per type (sprites loaded by kind in render/mobsprite.js)
+export const MOB_TYPES = {
+  shambler: { hp: 24, speed: 3.0, dmg: 7, r: 0.38 },  // baseline
+  watcher:  { hp: 32, speed: 2.4, dmg: 9, r: 0.42 },  // tall, slow, hits hard
+  hound:    { hp: 16, speed: 5.2, dmg: 6, r: 0.34 },  // fast rusher
+  crawler:  { hp: 12, speed: 4.4, dmg: 5, r: 0.30 },  // small, skittery
+  husk:     { hp: 50, speed: 1.8, dmg: 13, r: 0.52 }, // heavy tank
+};
+function pickKind(rng) {
+  const r = rng();
+  if (r < 0.40) return "shambler";
+  if (r < 0.62) return "watcher";
+  if (r < 0.80) return "hound";
+  if (r < 0.91) return "crawler";
+  return "husk";
+}
+
+// populate a dark room with a mix of entities the first time it's entered
 export function spawnMobs(world, room, player) {
   if (room._spawned) return;
   room._spawned = true;
@@ -17,7 +34,8 @@ export function spawnMobs(world, room, player) {
     let x, y, tries = 0;
     do { x = 1.5 + rng() * (room.w - 3); y = 1.5 + rng() * (room.h - 3); tries++; }
     while (tries < 12 && Math.hypot(x - player.pos.x, y - player.pos.y) < 5);
-    room.mobs.push({ x, y, hp: 24, maxHp: 24, r: 0.38, speed: 3.0, dmg: 7, cool: 0 });
+    const kind = pickKind(rng), t = MOB_TYPES[kind];
+    room.mobs.push({ kind, x, y, hp: t.hp, maxHp: t.hp, r: t.r, speed: t.speed, dmg: t.dmg, cool: 0 });
   }
 }
 

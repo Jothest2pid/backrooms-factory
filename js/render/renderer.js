@@ -8,6 +8,10 @@ import { bakeChunk } from "./bake.js";
 import { drawEntities } from "./entities.js";
 import { drawFurniture } from "./furniture.js";
 import { drawPlayer } from "./playerMarker.js";
+import { getMobSprite } from "./mobsprite.js";
+
+// placeholder tints per mob kind (until a sprite is dropped in)
+const MOB_TINT = { shambler: "#16121c", watcher: "#241a30", hound: "#3a1a18", crawler: "#1a2620", husk: "#2a2620" };
 
 export class Renderer {
   constructor(canvas) {
@@ -213,16 +217,23 @@ export class Renderer {
     lx.fill();
   }
 
-  // hostile mobs (room-local coords): a dark shambler with glowing eyes + hp bar
+  // hostile mobs (room-local coords): the kind's sprite if loaded, else a
+  // procedural placeholder. Drop sprites/<kind>.png to replace the placeholder.
   drawMobs(ctx, room, xf) {
     for (const m of room.mobs) {
       const p = xf.apply(m);
-      ctx.fillStyle = "rgba(30,20,40,0.45)"; // murky aura
-      ctx.beginPath(); ctx.arc(p.x, p.y, m.r * 1.5, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = "#16121c";
-      ctx.beginPath(); ctx.arc(p.x, p.y, m.r, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = "#e0503a";
-      ctx.beginPath(); ctx.arc(p.x - 0.13, p.y - 0.05, 0.06, 0, Math.PI * 2); ctx.arc(p.x + 0.13, p.y - 0.05, 0.06, 0, Math.PI * 2); ctx.fill();
+      const img = getMobSprite(m.kind || "shambler");
+      if (img) {
+        const s = m.r * 2.6;
+        ctx.drawImage(img, p.x - s / 2, p.y - s / 2, s, s);
+      } else {
+        ctx.fillStyle = "rgba(30,20,40,0.45)"; // murky aura
+        ctx.beginPath(); ctx.arc(p.x, p.y, m.r * 1.5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = MOB_TINT[m.kind] || "#16121c";
+        ctx.beginPath(); ctx.arc(p.x, p.y, m.r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#e0503a";
+        ctx.beginPath(); ctx.arc(p.x - 0.13, p.y - 0.05, 0.06, 0, Math.PI * 2); ctx.arc(p.x + 0.13, p.y - 0.05, 0.06, 0, Math.PI * 2); ctx.fill();
+      }
       if (m.hp < m.maxHp) {
         ctx.fillStyle = "rgba(0,0,0,0.55)"; ctx.fillRect(p.x - m.r, p.y - m.r - 0.22, m.r * 2, 0.1);
         ctx.fillStyle = "#d24a4a"; ctx.fillRect(p.x - m.r, p.y - m.r - 0.22, m.r * 2 * (m.hp / m.maxHp), 0.1);

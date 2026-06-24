@@ -32,6 +32,10 @@ load(U, "concrete", "assets/tiles/concrete_tiles.png");
 load(U, "stygium", "assets/tiles/stygium.png");
 load(U, "electrum", "assets/tiles/electrum.png");
 load(U, "unobtanium", "assets/tiles/unobtanium.png");
+// new minerals — drop a 32x32 PNG named like these into assets/tiles/ and it
+// renders automatically; until then ore.js falls back to the mineral's colour.
+for (const m of ["basalt", "quartz", "cobalt", "brimstone", "galena", "quicksilver", "niter"])
+  load(U, m, `assets/tiles/${m}.png`);
 
 export function onFloorReady(cb) { if (pending <= 0) cb(); else readyCbs.push(cb); }
 
