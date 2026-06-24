@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>THE BACKROOMS — non-euclidean walking sim</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <div id="hud">
+    <div class="line"><span class="k">ROOM</span> <span id="hud-room">--</span> <span class="k" style="margin-left:12px">MODE</span> <span id="hud-mode">EXPLORE</span></div>
+    <div class="line"><span class="k">EXPLORED</span> <span id="hud-explored">0 / 0</span></div>
+    <div class="bar"><span class="blabel">HP</span><div class="track"><div id="bar-health" class="fill hp"></div></div></div>
+    <div class="bar"><span class="blabel">ST</span><div class="track"><div id="bar-stamina" class="fill st"></div></div></div>
+    <div class="line"><span class="k">PWR</span> <span id="hud-power">—</span></div>
+    <div class="line"><span class="k">INV</span> <span id="hud-inv">empty</span></div>
+    <div class="line dim" id="hud-event">&nbsp;</div>
+  </div>
+
+  <div id="intro">
+    <div class="card">
+      <h1>THE BACKROOMS</h1>
+      <p class="sub">a non-euclidean top-down walking sim</p>
+      <ul>
+        <li><b>WASD</b> / <b>arrows</b> — walk &nbsp; <b>Shift</b> — run</li>
+        <li><b>right-click</b> — mine / disassemble / strip carpet / deconstruct</li>
+        <li><b>left-click</b> — inspect / use machine &nbsp; <b>C</b> — crafting</li>
+        <li><b>1–9</b> — hotbar &nbsp; <b>left-click</b> — use held (place / shoot / throw / eat)</li>
+        <li><b>C</b> — craft/tinker &nbsp; <b>I</b> — inventory & equip &nbsp; <b>V</b> — blink</li>
+        <li><b>B</b> — build &nbsp; <b>R</b> — rotate &nbsp; <b>~</b> — god &nbsp; <b>P</b> — debug &nbsp; <b>L</b> — export log</li>
+      </ul>
+      <p class="lore">
+        Rooms are stitched together by doorways — not by space. Walk a loop and
+        the geometry won't add up. Connected rooms hang around you at half
+        opacity; the one you're standing in snaps to full focus.
+      </p>
+      <button id="start-btn">ENTER</button>
+    </div>
+  </div>
+
+  <div id="settings">
+    <div class="srow">
+      <label for="opacity">FOG OPACITY <span id="opacity-val">0.50</span></label>
+      <input id="opacity" type="range" min="0.05" max="1" step="0.05" value="0.5" />
+    </div>
+    <div class="srow">
+      <label for="falloff">FOG FALLOFF <span id="falloff-val">0.50</span></label>
+      <input id="falloff" type="range" min="0.1" max="1" step="0.05" value="0.5" />
+    </div>
+    <div class="srow">
+      <label for="render">RENDER DIST <span id="render-val">16</span></label>
+      <input id="render" type="range" min="0" max="120" step="1" value="16" />
+    </div>
+    <div class="srow">
+      <label for="chunks">CHUNK SIZE <span id="chunks-val">8</span></label>
+      <input id="chunks" type="range" min="2" max="20" step="1" value="8" />
+    </div>
+  </div>
+
+  <div id="debug"></div>
+
+  <div id="tooltip"></div>
+  <div id="inspect"></div>
+
+  <div id="hotbar"></div>
+
+  <div id="inventory" class="hidden">
+    <div class="craft-head">EQUIPMENT <span class="dim">— click a slot to unequip</span></div>
+    <div id="equip-list"></div>
+    <div class="craft-head" style="margin-top:12px">INVENTORY <span class="dim">— click a trinket to equip · I to close</span></div>
+    <div id="inv-list"></div>
+  </div>
+
+  <div id="craft" class="hidden">
+    <div class="craft-head">CRAFTING <span class="dim">— C to close</span></div>
+    <div class="craft-tabs">
+      <button class="ctab active" data-station="hand">By hand</button>
+      <button class="ctab" data-station="workbench">Workbench</button>
+      <button class="ctab" data-station="tinker">Tinker</button>
+    </div>
+    <div id="craft-list"></div>
+  </div>
+
+  <div id="vignette"></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

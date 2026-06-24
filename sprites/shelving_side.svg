@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 130">
+  <!-- thin SIDE of a shelving unit: upright with shelf edges poking out -->
+  <rect x="9" y="3" width="10" height="124" fill="#5e4a2c" stroke="#3a2c16" stroke-width="2"/>
+  <rect x="9" y="3" width="3" height="124" fill="#7a6038"/>
+  <!-- shelf board edges -->
+  <g fill="#6f5a36" stroke="#3a2c16" stroke-width="0.8">
+    <rect x="6" y="20" width="16" height="5"/>
+    <rect x="6" y="48" width="16" height="5"/>
+    <rect x="6" y="76" width="16" height="5"/>
+    <rect x="6" y="104" width="16" height="5"/>
+  </g>
+</svg>

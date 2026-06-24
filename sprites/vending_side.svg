@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 120">
+  <!-- thin SIDE of a vending machine -->
+  <rect x="6" y="3" width="20" height="114" fill="#7a2f33" stroke="#4a1c1f" stroke-width="2.5"/>
+  <!-- lit glass front edge (the display side faces you) -->
+  <rect x="6" y="6" width="5" height="100" fill="#b06a4a" opacity="0.85"/>
+  <rect x="6" y="6" width="2" height="100" fill="#e0c08a"/>
+  <!-- coin/dispense panel low on the front -->
+  <rect x="8" y="92" width="6" height="14" fill="#3a1416"/>
+</svg>

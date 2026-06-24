@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 110">
+  <!-- thin SIDE of a wall electrical panel: a shallow box with conduit -->
+  <rect x="8" y="14" width="9" height="82" fill="#54606a" stroke="#333c44" stroke-width="2"/>
+  <rect x="8" y="14" width="3" height="82" fill="#6a7a86"/>
+  <!-- conduit pipe running out the top and bottom -->
+  <rect x="11" y="2" width="3.5" height="14" fill="#3a444c"/>
+  <rect x="11" y="94" width="3.5" height="14" fill="#3a444c"/>
+</svg>

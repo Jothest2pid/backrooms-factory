@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 120">
+  <!-- thin SIDE of a server rack -->
+  <rect x="6" y="3" width="18" height="114" fill="#26262c" stroke="#101014" stroke-width="2.5"/>
+  <rect x="6" y="3" width="4" height="114" fill="#34343c"/>
+  <!-- ventilation slits down the side -->
+  <g stroke="#15151a" stroke-width="1.4">
+    <line x1="12" y1="12" x2="22" y2="12"/><line x1="12" y1="20" x2="22" y2="20"/><line x1="12" y1="28" x2="22" y2="28"/>
+    <line x1="12" y1="44" x2="22" y2="44"/><line x1="12" y1="52" x2="22" y2="52"/><line x1="12" y1="60" x2="22" y2="60"/>
+    <line x1="12" y1="76" x2="22" y2="76"/><line x1="12" y1="84" x2="22" y2="84"/><line x1="12" y1="92" x2="22" y2="92"/>
+  </g>
+  <!-- a couple of status LEDs near the front edge -->
+  <circle cx="9" cy="14" r="1.4" fill="#5fe27a"/><circle cx="9" cy="20" r="1.4" fill="#e2b25f"/>
+</svg>

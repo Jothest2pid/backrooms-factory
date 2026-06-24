@@ -1,0 +1,17 @@
+# huge session transcript — don't ship it
+transcript-*.jsonl
+# design docs — keep local, NOT in the public repo
+roadmap.md
+catalog.md
+depth-design.md
+design.md
+dualgrid.md
+HANDOFF-*.md
+PROGRESS.md
+# local tooling / scratch
+*.mjs
+*.jsonl
+package.json
+node_modules/
+.DS_Store
+Thumbs.db

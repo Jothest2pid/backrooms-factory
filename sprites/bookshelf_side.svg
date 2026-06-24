@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 170">
+  <!-- thin SIDE of a bookshelf: the wooden end panel with shelf edges showing -->
+  <rect x="7" y="3" width="16" height="164" fill="#4a3219" stroke="#34230f" stroke-width="3"/>
+  <!-- lit front edge -->
+  <rect x="7" y="3" width="4" height="164" fill="#6e4d2c"/>
+  <!-- shelf board edges poking out the side -->
+  <g fill="#6e4d2c">
+    <rect x="7" y="42" width="16" height="7"/>
+    <rect x="7" y="82" width="16" height="7"/>
+    <rect x="7" y="122" width="16" height="7"/>
+  </g>
+  <!-- subtle grain -->
+  <g stroke="#3a2613" stroke-width="1">
+    <line x1="15" y1="10" x2="15" y2="40"/><line x1="18" y1="52" x2="18" y2="80"/><line x1="15" y1="92" x2="15" y2="120"/>
+  </g>
+</svg>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 170">
+  <!-- FRONT of a tall locker bank: 3 narrow columns, 4 doors each -->
+  <rect x="3" y="3" width="54" height="164" fill="#4a5a6a" stroke="#2a3540" stroke-width="3"/>
+  <!-- column dividers -->
+  <line x1="21" y1="5" x2="21" y2="165" stroke="#2a3540" stroke-width="2"/>
+  <line x1="39" y1="5" x2="39" y2="165" stroke="#2a3540" stroke-width="2"/>
+  <!-- row (door) seams -->
+  <g stroke="#33414e" stroke-width="1.6">
+    <line x1="5" y1="44" x2="55" y2="44"/>
+    <line x1="5" y1="85" x2="55" y2="85"/>
+    <line x1="5" y1="126" x2="55" y2="126"/>
+  </g>
+  <!-- vents (top of each door) -->
+  <g stroke="#36444f" stroke-width="1.1">
+    <line x1="9"  y1="12" x2="15" y2="12"/><line x1="27" y1="12" x2="33" y2="12"/><line x1="45" y1="12" x2="51" y2="12"/>
+    <line x1="9"  y1="53" x2="15" y2="53"/><line x1="27" y1="53" x2="33" y2="53"/><line x1="45" y1="53" x2="51" y2="53"/>
+    <line x1="9"  y1="94" x2="15" y2="94"/><line x1="27" y1="94" x2="33" y2="94"/><line x1="45" y1="94" x2="51" y2="94"/>
+    <line x1="9"  y1="135" x2="15" y2="135"/><line x1="27" y1="135" x2="33" y2="135"/><line x1="45" y1="135" x2="51" y2="135"/>
+  </g>
+  <!-- handles (small, near the seam side of each door) -->
+  <g fill="#cfcfd6">
+    <rect x="17" y="32" width="2.4" height="7"/><rect x="35" y="32" width="2.4" height="7"/><rect x="53" y="32" width="2.4" height="7"/>
+    <rect x="17" y="73" width="2.4" height="7"/><rect x="35" y="73" width="2.4" height="7"/><rect x="53" y="73" width="2.4" height="7"/>
+    <rect x="17" y="114" width="2.4" height="7"/><rect x="35" y="114" width="2.4" height="7"/><rect x="53" y="114" width="2.4" height="7"/>
+    <rect x="17" y="155" width="2.4" height="7"/><rect x="35" y="155" width="2.4" height="7"/><rect x="53" y="155" width="2.4" height="7"/>
+  </g>
+</svg>
