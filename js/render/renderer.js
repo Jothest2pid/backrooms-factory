@@ -63,6 +63,17 @@ export class Renderer {
     // hubs fan out to many random rooms — only ever render 1 room out of/through one
     const hubLimit = room.type === "hub" ? 1 : Infinity;
     const vis = this._vis;
+    this._curId = room.id; // current room — never unload its chunks
+    // vision cone (matches drawVision): a neighbour only renders if its doorway is in it
+    const facing = Math.atan2((player.dir && player.dir.y) || 1, (player.dir && player.dir.x) || 0);
+    const coneRange = game.visionRange ? game.visionRange() : 14, coneHalf = 0.62, awareR = 3.2;
+    const inCone = (wx, wy) => {
+      const dx = wx - player.pos.x, dy = wy - player.pos.y, d = Math.hypot(dx, dy);
+      if (d <= awareR) return true;
+      if (d > coneRange) return false;
+      const da = Math.abs(((Math.atan2(dy, dx) - facing + Math.PI) % (2 * Math.PI)) - Math.PI);
+      return da <= coneHalf + 0.2;
+    };
     const nodes = [];
     const seen = new Set();             // dedupe by ROOM, so a room never double-overlays
     const queue = [{ rm: room, xf: IDENTITY, depth: 0, entry: -1 }];
@@ -87,6 +98,8 @@ export class Renderer {
       if (depth >= FOG_DEPTH) continue; // FOW: stop at 1 room out — neighbors don't expand further
       rm.doors.forEach((door, di) => {
         if (di === entry || !door.link) return; // skip backtrack + unexpanded stubs
+        // only render a neighbour whose doorway is inside the vision cone
+        if (depth === 0) { const g = rm.doorGeom(door); if (g && !inCone(g.p.x, g.p.y)) return; }
         const nb = game.rooms[door.link.room];
         // render through ALL linked doors (folds, one-ways, self-loops) so the
         // non-euclidean effect reads from both sides — only the culls below bound it
@@ -162,7 +175,7 @@ export class Renderer {
     lx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     lx.globalCompositeOperation = "source-over";
     lx.clearRect(0, 0, this.cw, this.ch);
-    lx.fillStyle = game.current.dark ? "rgba(3,3,5,0.97)" : "rgba(8,8,11,0.68)";
+    lx.fillStyle = "rgba(0,0,0,1)"; // fully black outside the cone
     lx.fillRect(0, 0, this.cw, this.ch);
 
     lx.globalCompositeOperation = "destination-out";
@@ -184,11 +197,13 @@ export class Renderer {
     this.ctx.drawImage(lc, 0, 0, this.cw, this.ch);
   }
 
-  // soft-edged wedge from (sx,sy) facing `ang`, half-width `half` radians
+  // soft-edged wedge from (sx,sy) facing `ang`, half-width `half` radians.
+  // Reveal is strong up close and fades with distance, so far things go dark.
   punchCone(lx, sx, sy, r, ang, half) {
-    const g = lx.createRadialGradient(sx, sy, r * 0.12, sx, sy, r);
+    const g = lx.createRadialGradient(sx, sy, r * 0.1, sx, sy, r);
     g.addColorStop(0, "rgba(0,0,0,1)");
-    g.addColorStop(0.7, "rgba(0,0,0,0.92)");
+    g.addColorStop(0.35, "rgba(0,0,0,0.85)");
+    g.addColorStop(0.65, "rgba(0,0,0,0.45)");
     g.addColorStop(1, "rgba(0,0,0,0)");
     lx.fillStyle = g;
     lx.beginPath();
@@ -311,6 +326,7 @@ export class Renderer {
     ctx.save();
     ctx.globalAlpha = fuzzy ? alpha * 0.8 : alpha;
     let drew = false;
+    const drawn = new Set();
     for (let cy = 0; cy < ny; cy++) {
       for (let cx = 0; cx < nx; cx++) {
         const ox = xf.t.x + cx * C, oy = xf.t.y + cy * C;
@@ -318,16 +334,36 @@ export class Renderer {
         if (ox + wU <= vis.x0 || ox >= vis.x1 || oy + hU <= vis.y0 || oy >= vis.y1) continue; // off-screen chunk
         const chunk = bakeChunk(room, cx, cy, C, this.caches, m);
         ctx.drawImage(chunk.canvas, ox, oy, chunk.w, chunk.h);
+        drawn.add(cx + "_" + cy);
         m.chunksDrawn++;
         drew = true;
       }
+    }
+    // unload non-visible chunks of OTHER rooms (keep the room you're standing in whole)
+    if (room.id !== this._curId && room._chunks) {
+      for (const k of room._chunks.keys()) if (!drawn.has(k)) room._chunks.delete(k);
     }
     // placed structures drawn live over the floor (never baked)
     if (drew) drawEntities(ctx, room, xf.t.x, xf.t.y);
     if (drew && room._string && room._string.length) this.drawString(ctx, room, xf);
     if (drew && room.mobs && room.mobs.length) this.drawMobs(ctx, room, xf);
+    if (drew) this.drawTopWall(ctx, room, xf);
     ctx.restore();
     if (drew) { m.roomsDrawn++; room._seenFrame = this._frame; }
+  }
+
+  // a thin wall along the room's top edge, stretched up a little (no gap with the
+  // floor) so every room reads as having a back wall behind it.
+  drawTopWall(ctx, room, xf) {
+    const p = room.palette || {};
+    const h = 0.5; // how far it stretches up
+    const x = xf.t.x, y = xf.t.y;
+    ctx.fillStyle = p.wall || "#cfc77f";
+    ctx.fillRect(x, y - h, room.w, h);
+    ctx.fillStyle = p.trim || "#8d8645"; // darker outline only on the very top
+    ctx.fillRect(x, y - h, room.w, 0.09);
+    ctx.fillStyle = "rgba(0,0,0,0.22)"; // soft shadow where it meets the floor
+    ctx.fillRect(x, y - 0.06, room.w, 0.06);
   }
 
   // Free the baked bitmaps + material caches of rooms we haven't drawn in a
