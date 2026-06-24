@@ -29,7 +29,7 @@
         <li><b>left-click</b> — inspect / use machine &nbsp; <b>C</b> — crafting</li>
         <li><b>1–9</b> — hotbar &nbsp; <b>left-click</b> — use held (place / shoot / throw / eat)</li>
         <li><b>C</b> — craft/tinker &nbsp; <b>I</b> — inventory & equip &nbsp; <b>V</b> — blink</li>
-        <li><b>B</b> — build &nbsp; <b>R</b> — rotate &nbsp; <b>~</b> — god &nbsp; <b>P</b> — debug &nbsp; <b>L</b> — export log</li>
+        <li><b>B</b> — build menu &nbsp; <b>R</b> — rotate &nbsp; <b>~</b> — god &nbsp; <b>P</b> — debug &nbsp; <b>L</b> — export log</li>
       </ul>
       <p class="lore">
         Rooms are stitched together by doorways — not by space. Walk a loop and
@@ -83,19 +83,17 @@
     <div id="craft-list"></div>
   </div>
 
+  <div id="build" class="hidden">
+    <div class="craft-head">BUILD <span class="dim">— click an item, then left-click a tile to place it · R rotates · B to close</span></div>
+    <div id="build-list"></div>
+  </div>
+
+  <div id="objective" class="hidden"></div>
+
   <button id="guide-btn" title="How to play (H)">? GUIDE</button>
   <div id="guide" class="hidden">
-    <div class="craft-head">HOW TO PROGRESS <span class="dim">— click GUIDE or press H to close</span></div>
-    <div class="guide-body">
-      <p><b>1. Scavenge.</b> Right-click furniture to break it for wood, fabric, scrap and fuel. It sometimes also drops loot or a trinket. Right-click carpet to strip it, and ore patches to mine them.</p>
-      <p><b>2. First tools.</b> Press <b>C</b> to craft. Make planks, then a wooden pickaxe and an axe, then a <b>workbench</b>. Select it in the hotbar (keys 1-9) and left-click an open tile to place it.</p>
-      <p><b>3. Parts.</b> Standing near the workbench unlocks more recipes: wooden gears, electrum plate, wire, and a <b>machine frame</b>. Mine electrum and stygium veins for metal.</p>
-      <p><b>4. Automate.</b> Lay a <b>belt</b>, then drop a <b>smelter</b> onto the belt. Ore riding past it becomes ingots. Add a <b>presser</b> further along to turn ingots into plates. Chain more processors to keep up with a fast belt.</p>
-      <p><b>5. Power.</b> Build a <b>wood generator</b> and load fuel into it (left-click with fuel). Powered machines draw from the grid. If you overbuild, the <b>PWR</b> meter browns out and machines slow down.</p>
-      <p><b>6. Gear up.</b> Press <b>I</b> to open inventory and equipment. Click a trinket to equip it into one of the 10 slots. Build a <b>tinker bench</b> to fuse duplicate trinkets into stronger ones, or merge different ones into capstones like boots, wings, or the Phone.</p>
-      <p><b>7. Survive the dark.</b> Dark rooms spawn enemies. Craft a musket, a bow, or an auto-turret. Make an <b>alchemy cauldron</b> and turn brimstone + powder into <b>black sulfur</b> for ammo and grenades. Eat food and set a <b>bedroll</b> so death sends you back to it instead of spawn.</p>
-      <p><b>8. Go deeper.</b> Build the crusher, assembler, crucible, loom and animal pen. Find <b>schematics</b> in library rooms to unlock alternate recipes. Floor and wallpaper your base to make it yours.</p>
-    </div>
+    <div class="craft-head">HOW TO PROGRESS <span class="dim">— tracks where you are · press H to close</span></div>
+    <div id="guide-body" class="guide-body"></div>
   </div>
 
   <div id="vignette"></div>

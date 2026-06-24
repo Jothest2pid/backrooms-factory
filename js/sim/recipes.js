@@ -227,7 +227,19 @@ function tierOf(item, seen = new Set()) {
 }
 export const recipeTier = (r) => tierOf(r.out[0]);
 
-// a recipe is "researched"/visible once every input has been discovered AND (if it
-// needs a found schematic) that schematic has been picked up.
+// milestone recipes are ALWAYS visible (greyed out until affordable) so the
+// factory progression is legible from the start — you can see how to build a
+// belt or a smelter before you've gathered the parts, instead of the goal being
+// hidden behind its own prerequisites.
+export const KEY_RECIPES = new Set([
+  "belt", "workbench", "chest", "torch", "bedroll",
+  "wooden_gear", "concrete_block", "electrum_plate", "wire", "machine_frame",
+  "concrete_forge", "smelter", "presser", "mill", "washer", "crusher",
+  "assembler", "wood_generator", "power_pole", "tinker_bench", "musket",
+]);
+
+// a recipe is visible if it's a milestone, or once every input has been
+// discovered AND (if it needs a found schematic) that schematic was picked up.
 export const recipeUnlocked = (discovered, r) =>
-  (!r.unlockedBy || discovered.has(r.unlockedBy)) && r.in.every(([it]) => discovered.has(it));
+  (!r.unlockedBy || discovered.has(r.unlockedBy)) &&
+  (KEY_RECIPES.has(r.id) || r.in.every(([it]) => discovered.has(it)));

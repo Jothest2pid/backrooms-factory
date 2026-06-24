@@ -292,6 +292,35 @@ html, body {
 .recipe .rname { color: #fff; }
 .recipe .rcost { color: var(--amber-dim); font-size: 10.5px; margin-top: 2px; }
 
+/* ---- build menu (separate from crafting; placeable buildings you own) ---- */
+#build {
+  position: fixed;
+  top: 50%;
+  left: 18px;
+  transform: translateY(-50%);
+  z-index: 14;
+  width: 250px;
+  max-height: 78vh;
+  overflow-y: auto;
+  background: rgba(10, 10, 8, 0.92);
+  border: 1px solid var(--amber-dim);
+  padding: 12px;
+  font-size: 12px;
+}
+#build.hidden { display: none; }
+#build-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 4px; }
+.bcell {
+  border: 1px solid rgba(138, 132, 88, 0.4);
+  padding: 7px 4px; cursor: pointer; position: relative;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+.bcell:hover { border-color: var(--amber); background: rgba(216,207,140,0.1); }
+.bcell.sel { border-color: var(--amber); background: rgba(216,207,140,0.22); }
+.bcell .sw { width: 24px; height: 24px; border: 1px solid rgba(0,0,0,0.4); margin-bottom: 4px; }
+.bcell .bname { font-size: 9.5px; line-height: 1.15; color: var(--amber); }
+.bcell .cnt { position: absolute; top: 2px; right: 4px; color: #fff; font-size: 11px; }
+#build-list .dim { grid-column: 1/-1; }
+
 /* ---- inventory popup ---- */
 #inventory {
   position: fixed;
@@ -376,5 +405,37 @@ html, body {
 }
 #guide.hidden { display: none; }
 #guide .guide-body { margin-top: 10px; line-height: 1.55; }
-#guide .guide-body p { margin-bottom: 11px; color: var(--amber); }
 #guide .guide-body b { color: #fff; }
+.gintro { color: var(--amber-dim); margin-bottom: 14px; }
+.gintro b { color: var(--amber); }
+.gstep { border-left: 2px solid rgba(138,132,88,0.3); padding: 4px 0 6px 12px; margin-bottom: 4px; }
+.gstep.done { opacity: 0.5; }
+.gstep.current { border-left-color: var(--amber); background: rgba(216,207,140,0.08); }
+.gstep.upcoming { opacity: 0.7; }
+.gstep-head { display: flex; align-items: baseline; gap: 8px; }
+.gicon { color: var(--amber); width: 14px; display: inline-block; }
+.gstep.done .gicon { color: #7ec27e; }
+.gtitle { color: #fff; }
+.gstep-goal { color: var(--amber-dim); font-size: 11.5px; margin: 2px 0 0 22px; }
+.gstep-hint { color: var(--amber); font-size: 12px; margin: 5px 0 0 22px; line-height: 1.5; }
+
+/* ---- always-on objective tracker ---- */
+#objective {
+  position: fixed;
+  left: 14px;
+  bottom: 16px;
+  z-index: 13;
+  width: 250px;
+  background: rgba(14, 13, 8, 0.9);
+  border: 1px solid var(--amber-dim);
+  border-left: 3px solid var(--amber);
+  padding: 9px 11px;
+  font-size: 12px;
+}
+#objective.hidden { display: none; }
+.obj-head { display: flex; align-items: baseline; gap: 7px; color: #fff; }
+.obj-tag { font-size: 9.5px; letter-spacing: 1.5px; color: var(--bg); background: var(--amber); padding: 1px 5px; }
+.obj-prog { margin-left: auto; color: var(--amber-dim); font-size: 11px; }
+.obj-goal { color: var(--amber); margin-top: 5px; line-height: 1.45; }
+.obj-hint { color: var(--amber-dim); font-size: 10.5px; margin-top: 5px; }
+.obj-hint b { color: var(--amber); }

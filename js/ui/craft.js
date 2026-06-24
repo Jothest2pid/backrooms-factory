@@ -1,7 +1,7 @@
 // ui/craft.js — the hotbar strip and the crafting panel (DOM overlays)
 
 import { RECIPES, recipeTier, recipeUnlocked } from "../sim/recipes.js";
-import { ITEMS, itemName, isTrinket } from "../sim/registry.js";
+import { ITEMS, itemName, isTrinket, isBuildable } from "../sim/registry.js";
 
 const EQUIP_SLOTS = ["head", "goggles", "neck", "chest", "legs", "shoes", "back", "gloves", "free1", "free2"];
 
@@ -30,6 +30,15 @@ export class CraftUI {
     this.invList = document.getElementById("inv-list");
     this.equipList = document.getElementById("equip-list");
     this.invOpen = false;
+    this.buildEl = document.getElementById("build");
+    this.buildList = document.getElementById("build-list");
+    this.buildOpen = false;
+
+    // click a buildable in the build menu → select it for placement
+    if (this.buildList) this.buildList.addEventListener("click", (e) => {
+      const cell = e.target.closest(".bcell");
+      if (cell) { this.game.buildItem = (this.game.buildItem === cell.dataset.id) ? null : cell.dataset.id; this.renderBuild(); }
+    });
 
     // click a trinket in the inventory → equip it
     this.invList.addEventListener("click", (e) => {
@@ -85,6 +94,50 @@ export class CraftUI {
         `</div>`;
     }
     this.hotbar.innerHTML = html;
+  }
+
+  // ---- build menu (separate from crafting): place buildings you already own ----
+  toggleBuild() {
+    this.buildOpen = !this.buildOpen;
+    if (!this.buildEl) return;
+    this.buildEl.classList.toggle("hidden", !this.buildOpen);
+    this.game.buildMode = this.buildOpen;
+    if (this.buildOpen) this.renderBuild();
+    else {
+      this.game.buildItem = null;
+      if (this.game.held) this.game.placeHeld(Math.floor(this.game.player.pos.x), Math.floor(this.game.player.pos.y));
+    }
+  }
+
+  buildables() {
+    const g = this.game;
+    return Object.entries(g.inventory)
+      .filter(([id, n]) => n > 0 && isBuildable(id))
+      .sort((a, b) => itemName(a[0]).localeCompare(itemName(b[0])));
+  }
+
+  renderBuild() {
+    if (!this.buildEl) return;
+    const g = this.game, items = this.buildables();
+    this._bsig = items.map(([id, n]) => `${id}:${n}`).join(",") + "|" + (g.buildItem || "");
+    if (!items.length) {
+      this.buildList.innerHTML = `<div class="dim">no buildings yet — craft belts, machines, walls or furniture (press C), then come back here to place them</div>`;
+      return;
+    }
+    this.buildList.innerHTML = items.map(([id, n]) => {
+      const spec = ITEMS[id] || {};
+      return `<div class="bcell ${g.buildItem === id ? "sel" : ""}" data-id="${id}" title="${itemName(id)} — click, then left-click a tile to place">` +
+        `<span class="sw" style="background:${spec.color || "#888"}"></span>` +
+        `<span class="bname">${itemName(id)}</span><span class="cnt">${n}</span></div>`;
+    }).join("");
+  }
+
+  // per-frame refresh while the build menu is open (counts change as you place)
+  refreshBuild() {
+    if (!this.buildOpen) return;
+    const g = this.game, items = this.buildables();
+    const sig = items.map(([id, n]) => `${id}:${n}`).join(",") + "|" + (g.buildItem || "");
+    if (sig !== this._bsig) this.renderBuild();
   }
 
   // full inventory grid popup (toggled with I)

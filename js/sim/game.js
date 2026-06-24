@@ -47,8 +47,10 @@ export class Game {
     // base-building / mining state
     this.inventory = {};      // item id -> count
     this.discovered = new Set(); // item ids ever obtained — gates which recipes show
+    this.everPlaced = new Set(); // buildable/surface ids ever placed — drives the progression guide
     this.held = null;         // furniture item being carried (move mode)
-    this.buildMode = false;   // B toggles: click furniture to pick up / place
+    this.buildMode = false;   // B toggles: the build menu + furniture pick-up / place
+    this.buildItem = null;    // buildable chosen in the build menu, ready to place
     this.god = false;         // ~ toggles: noclip + infinite stamina
 
     // crafting / tools / placement
@@ -167,7 +169,11 @@ export class Game {
   // ---- hotbar / equipped ----
   selectedItem() { return this.hotbar[this.sel] || null; }
   equippedTool() { const it = this.selectedItem(); return isTool(it) ? it : "fist"; }
-  selectedBuildable() { const it = this.selectedItem(); return isBuildable(it) && (this.inventory[it] || 0) > 0 ? it : null; }
+  selectedBuildable() {
+    // build menu pick wins while building; otherwise a buildable held on the hotbar
+    if (this.buildMode && this.buildItem && isBuildable(this.buildItem) && (this.inventory[this.buildItem] || 0) > 0) return this.buildItem;
+    const it = this.selectedItem(); return isBuildable(it) && (this.inventory[it] || 0) > 0 ? it : null;
+  }
   addToHotbar(item) { if ((isTool(item) || isBuildable(item) || USABLE.has(item) || THROWN.has(item)) && !this.hotbar.includes(item)) this.hotbar.push(item); }
   selectedUsable() { const it = this.selectedItem(); return USABLE.has(it) && (this.inventory[it] || 0) > 0 ? it : null; }
 
@@ -344,7 +350,7 @@ export class Game {
   }
 
   // ---- buildable placement (dynamic layer — entities, never baked) ----
-  selectSlot(i) { if (i >= 0 && i < this.hotbar.length) this.sel = i; }
+  selectSlot(i) { if (i >= 0 && i < this.hotbar.length) { this.sel = i; this.buildItem = null; } }
   scrollSel(d) { const n = this.hotbar.length; if (n) this.sel = (this.sel + d + n) % n; }
   rotatePlacement() { this.placeFacing = (this.placeFacing + 1) % 4; }
 
@@ -378,6 +384,7 @@ export class Game {
     if (spec.machine || item.endsWith("_wall"))
       this.current.solids.push({ type: "rect", x: tx, y: ty, w, h, ent: e });
     this.inventory[item] -= 1;
+    this.everPlaced.add(item);
     telemetry.log("place", { item });
     if (item === "bedroll") { this.spawn = { room: this.current.id, x: tx + 0.5, y: ty + 0.5 }; this.lastEvent = "bedroll set — you'll respawn here"; return true; }
     sfx("place"); this.lastEvent = `placed ${spec.name}`;
@@ -394,6 +401,7 @@ export class Game {
     set.add(key);
     room._chunks = null;
     this.inventory[item] -= 1;
+    this.everPlaced.add(item);
     sfx("place"); this.lastEvent = kind === "floor" ? "laid flooring" : "hung wallpaper";
     return true;
   }

@@ -11,6 +11,7 @@ import { ITEMS } from "./sim/registry.js";
 import { Inspect } from "./ui/inspect.js";
 import { Settings } from "./ui/settings.js";
 import { CraftUI } from "./ui/craft.js";
+import { Guide } from "./ui/guide.js";
 import { onSpritesReady } from "./render/sprites.js";
 import { onFloorReady } from "./render/floor.js";
 import { telemetry } from "./sim/telemetry.js";
@@ -24,6 +25,7 @@ const settings = new Settings();
 
 let game = newGame();
 const craftUI = new CraftUI(game);
+const guide = new Guide(game);
 let last = performance.now();
 let t = 0;
 let started = false;
@@ -84,6 +86,8 @@ function frame(now) {
   updateHud();
   craftUI.renderHotbar();
   craftUI.refresh(); // in-place update so clicks aren't eaten by a rebuild
+  craftUI.refreshBuild(); // build menu counts update as you place
+  guide.update(started); // objective tracker + dynamic progression guide
   // (inventory popup renders on open + after equip/unequip, NOT every frame — clicks survive)
   // tooltip only when not carrying something
   inspect.hover(game.held ? null : hovered, input.mouse);
@@ -174,9 +178,9 @@ document.getElementById("guide-btn").addEventListener("click", toggleGuide);
 window.addEventListener("keydown", (e) => {
   const k = e.key.toLowerCase();
   if (!started && (k === "enter" || k === " " || k.startsWith("arrow") || "wasd".includes(k))) start();
-  if (k === "r") { if (game.held) game.rotateHeld(); else if (game.selectedBuildable()) game.rotatePlacement(); else { game = newGame(); craftUI.setGame(game); started = true; intro.classList.add("hidden"); } }
+  if (k === "r") { if (game.held) game.rotateHeld(); else if (game.selectedBuildable()) game.rotatePlacement(); else { game = newGame(); craftUI.setGame(game); guide.setGame(game); started = true; intro.classList.add("hidden"); } }
   if (k === "p") { perf.on = !perf.on; elDebug.classList.toggle("show", perf.on); }
-  if (k === "b") { game.buildMode = !game.buildMode; if (!game.buildMode && game.held) game.placeHeld(Math.floor(game.player.pos.x), Math.floor(game.player.pos.y)); }
+  if (k === "b") { craftUI.toggleBuild(); }
   if (k === "c") { craftUI.toggle(); }
   if (k === "i") { craftUI.toggleInv(); }
   if (k === "v") { game.blink(); } // anomalous blink (needs a blink trinket)
