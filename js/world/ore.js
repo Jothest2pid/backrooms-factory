@@ -26,19 +26,19 @@ const BUILDABLE_TILES = new Set([TILE.FLOOR, TILE.CONCRETE, TILE.WET]);
 
 // chance a room contains an ore vein, by type
 function veinFor(rng, room) {
-  if (rng() < 0.008) return 3;                                 // unobtanium — singular, very rare
-  if (room.type === "pipe") return rng() < 0.75 ? 1 : 0;       // stygium — early ore exposure
+  if (rng() < 0.004) return 3;                                 // unobtanium — singular, very rare
+  if (room.type === "pipe") return rng() < 0.4 ? 1 : 0;       // stygium — early ore exposure
   if (room.type === "pillar" || room.type === "suburb" || room.type === "hub") return 0;
   const r = rng();
-  if (r < 0.14) return 1;                                      // stygium — uncommon
-  if (r < 0.20) return 2;                                      // electrum
-  if (r < 0.24) return 7;                                      // quartz
-  if (r < 0.28) return 10;                                     // basalt
-  if (r < 0.31) return 4;                                      // cobalt
-  if (r < 0.34) return 5;                                      // brimstone
-  if (r < 0.37) return 6;                                      // galena
-  if (r < 0.385) return 8;                                     // quicksilver — rare
-  if (r < 0.40) return 9;                                      // niter — rare
+  if (r < 0.07) return 1;                                      // stygium — uncommon
+  if (r < 0.10) return 2;                                      // electrum
+  if (r < 0.12) return 7;                                      // quartz
+  if (r < 0.14) return 10;                                     // basalt
+  if (r < 0.155) return 4;                                      // cobalt
+  if (r < 0.17) return 5;                                      // brimstone
+  if (r < 0.185) return 6;                                      // galena
+  if (r < 0.193) return 8;                                     // quicksilver — rare
+  if (r < 0.20) return 9;                                      // niter — rare
   return 0;
 }
 
@@ -51,7 +51,7 @@ export function buildOre(rng, room) {
   const seen = new Set();
   let tx = Math.floor(2 + rng() * (room.w - 4));
   let ty = Math.floor(2 + rng() * (room.h - 4));
-  const size = 4 + Math.floor(rng() * 9);
+  const size = 2 + Math.floor(rng() * 4);
   for (let s = 0; s < size * 3 && room.ores.length < size; s++) {
     const key = tx + "," + ty;
     if (!seen.has(key) && room.inBounds(tx, ty) && BUILDABLE_TILES.has(room.tileAt(tx, ty))) {

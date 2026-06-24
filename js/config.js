@@ -6,8 +6,8 @@ export const BAKE = 40;      // px per world unit rooms are pre-rendered at
 export const CARPET_T = 64;  // carpet tile texture size (px)
 
 // movement
-export const WALK = 7.5;
-export const RUN = 13;
+export const WALK = 5.0;
+export const RUN = 9.0;
 export const TRAVERSE_COOLDOWN = 0.08;
 
 // world — infinite, streamed: rooms (the "chunks") generate lazily behind doors

@@ -98,7 +98,7 @@ export const disassembleSpec = (type) => DISASSEMBLE[type] || { hp: 3, drops: { 
 
 const POOLS = {
   yellow:  ["desk", "lockers", "boxes", "chair", "trash", "pottedPlant", "filingCabinet"],
-  office:  ["desk", "cubicle", "officeChair", "filingCabinet", "computer", "whiteboard", "serverRack", "trash"],
+  office:  ["desk", "desk", "cubicle", "officeChair", "filingCabinet", "whiteboard", "serverRack", "trash"],
   pipe:    ["drum", "boxes", "electricalPanel"],
   hub:     ["trash", "boxes"],
   pillar:  ["boxes", "pallet", "drum"],
@@ -113,9 +113,14 @@ const inFloor = (room, x, y) => !room.organic || pointInPoly({ x, y }, room.outl
 const inPit = (room, x, y) =>
   room.features.some((ft) => ft.type === "pitfall" && x >= ft.x && x <= ft.x + ft.w && y >= ft.y && y <= ft.y + ft.h);
 
+// surfaces other things can sit on, and the small things that sit on them
+const SURFACE = new Set(["desk", "counter"]);
+const TABLE_ITEMS = ["computer", "pottedPlant"];
+
+// items on a table get NO collision solid and render above their host
 export function addFurniture(room, f) {
   room.furniture.push(f);
-  room.solids.push({ type: "rect", x: f.x - f.w / 2, y: f.y - f.h / 2, w: f.w, h: f.h, furn: f });
+  if (!f.onTable) room.solids.push({ type: "rect", x: f.x - f.w / 2, y: f.y - f.h / 2, w: f.w, h: f.h, furn: f });
 }
 
 function dims(rng, type) {
@@ -130,18 +135,72 @@ function dims(rng, type) {
   return { w, h, orient: w >= h ? "side" : "front" };
 }
 
-function place(rng, room, type) {
-  if (!ITEMS[type]) return;
-  const { w, h, orient } = dims(rng, type);
-  const x = 2 + rng() * (room.w - 4);
-  const y = 2 + rng() * (room.h - 4);
-  if (!inFloor(room, x, y) || inPit(room, x, y)) return; // not over water/holes
-  addFurniture(room, { type, x, y, w, h, orient });
+// tiles a room already has spoken for: ore, pits, pillars, placed furniture.
+// Furniture must not share any of them, so it never sits on ore or a hole.
+function occupancyOf(room) {
+  const occ = new Set();
+  for (const o of room.ores) occ.add(o.tx + "," + o.ty);
+  for (const ft of room.features) {
+    if (ft.type === "pitfall") {
+      for (let y = Math.floor(ft.y); y < Math.ceil(ft.y + ft.h); y++)
+        for (let x = Math.floor(ft.x); x < Math.ceil(ft.x + ft.w); x++) occ.add(x + "," + y);
+    } else if (ft.type === "pillar") occ.add(Math.floor(ft.x) + "," + Math.floor(ft.y));
+  }
+  for (const f of room.furniture) if (!f.onTable) markFootprint(occ, f);
+  return occ;
+}
+function markFootprint(occ, f) {
+  for (let y = Math.floor(f.y - f.h / 2); y < Math.ceil(f.y + f.h / 2); y++)
+    for (let x = Math.floor(f.x - f.w / 2); x < Math.ceil(f.x + f.w / 2); x++) occ.add(x + "," + y);
+}
+function areaFree(room, occ, tx, ty, tw, th) {
+  for (let y = ty; y < ty + th; y++)
+    for (let x = tx; x < tx + tw; x++) {
+      if (!inFloor(room, x + 0.5, y + 0.5)) return false;
+      if (occ.has(x + "," + y)) return false;
+    }
+  return true;
+}
+
+// place one furniture, snapped to whole tiles, never overlapping anything
+function place(rng, room, type, occ) {
+  const spec = ITEMS[type];
+  if (!spec) return;
+  const d = dims(rng, type);
+  const tw = Math.max(1, Math.round(d.w)), th = Math.max(1, Math.round(d.h));
+  for (let tries = 0; tries < 16; tries++) {
+    const tx = 1 + Math.floor(rng() * Math.max(1, room.w - tw - 1));
+    const ty = 1 + Math.floor(rng() * Math.max(1, room.h - th - 1));
+    if (!areaFree(room, occ, tx, ty, tw, th)) continue;
+    for (let y = ty; y < ty + th; y++) for (let x = tx; x < tx + tw; x++) occ.add(x + "," + y);
+    const f = { type, x: tx + tw / 2, y: ty + th / 2, w: tw, h: th, orient: d.orient };
+    addFurniture(room, f);
+    if (SURFACE.has(type)) maybeTableItem(rng, room, f);
+    return;
+  }
+}
+
+// drop a small item on top of a surface (desks favour a computer)
+function maybeTableItem(rng, room, surf) {
+  if (rng() < 0.3) return;
+  const type = surf.type === "desk" && rng() < 0.7 ? "computer" : TABLE_ITEMS[Math.floor(rng() * TABLE_ITEMS.length)];
+  const spec = ITEMS[type];
+  if (!spec || !spec.w) return;
+  const w = Math.min(surf.w * 0.7, spec.w[1]), h = Math.min(surf.h * 0.7, spec.h[1]);
+  addFurniture(room, { type, x: surf.x, y: surf.y, w, h, orient: "front", onTable: true });
+}
+
+function rectFree(occ, f) {
+  for (let y = Math.floor(f.y - f.h / 2); y < Math.ceil(f.y + f.h / 2); y++)
+    for (let x = Math.floor(f.x - f.w / 2); x < Math.ceil(f.x + f.w / 2); x++)
+      if (occ.has(x + "," + y)) return false;
+  return true;
 }
 
 // houses lined along the walls but never blocking a doorway
 function placeHouses(rng, room) {
   const margin = 1.2;
+  const occ = occupancyOf(room); // so corner houses don't overlap each other
   for (const side of ["N", "S", "E", "W"]) {
     const along = side === "N" || side === "S" ? room.w : room.h;
     const spans = room.doors
@@ -162,7 +221,7 @@ function placeHouses(rng, room) {
         else if (side === "W") f = { x: room.wallT + gap + d / 2, y: c, w: d, h: L, orient: "side" };
         else f = { x: room.w - room.wallT - gap - d / 2, y: c, w: d, h: L, orient: "side" };
         // houses are fixed structures — collide with them, can't pick them up
-        if (inFloor(room, f.x, f.y)) addFurniture(room, { type: "house", fixed: true, ...f });
+        if (inFloor(room, f.x, f.y) && rectFree(occ, f)) { markFootprint(occ, f); addFurniture(room, { type: "house", fixed: true, ...f }); }
         pos += L + 1.6;
       } else pos += 1.6;
     }
@@ -176,27 +235,32 @@ export function buildItems(rng, room) {
   }
   if (room.type === "suburb") { placeHouses(rng, room); return; }
 
-  // library: rows of bookshelves acting as maze walls, with an aisle gap
+  // library: horizontal rows of bookshelves (left-to-right) with a vertical aisle.
+  // shelves are seen side-on as you walk the aisles, so they use the side sprite.
   if (room.type === "library") {
-    for (let x = 3; x < room.w - 2; x += 3.2) {
-      const gap = 2 + rng() * (room.h - 6);
-      for (let y = 2; y < room.h - 2; y += 1.0) {
-        if (Math.abs(y - gap) < 1.7) continue;
-        if (inFloor(room, x, y)) addFurniture(room, { type: "bookshelf", x, y, w: 0.8, h: 0.9, orient: "front" });
+    const occ = occupancyOf(room);
+    for (let ty = 3; ty < room.h - 2; ty += 3) {
+      const aisle = 2 + Math.floor(rng() * (room.w - 5)); // gap column you walk through
+      for (let tx = 2; tx < room.w - 2; tx += 1) {
+        if (Math.abs(tx - aisle) < 1.5) continue;
+        if (!areaFree(room, occ, tx, ty, 1, 1)) continue;
+        occ.add(tx + "," + ty);
+        addFurniture(room, { type: "bookshelf", x: tx + 0.5, y: ty + 0.5, w: 1, h: 1, orient: "side" });
       }
     }
     return;
   }
 
+  const occ = occupancyOf(room);
   if (room.type === "yellow") {
     if (rng() < 0.5) return; // most plain rooms are empty
     const pool = POOLS.yellow;
     const n = 1 + Math.floor(rng() * 2);
-    for (let i = 0; i < n; i++) place(rng, room, pool[Math.floor(rng() * pool.length)]);
+    for (let i = 0; i < n; i++) place(rng, room, pool[Math.floor(rng() * pool.length)], occ);
     return;
   }
 
   const pool = POOLS[room.type] || POOLS.yellow;
   const n = COUNT[room.type] || 2;
-  for (let i = 0; i < n; i++) place(rng, room, pool[Math.floor(rng() * pool.length)]);
+  for (let i = 0; i < n; i++) place(rng, room, pool[Math.floor(rng() * pool.length)], occ);
 }
