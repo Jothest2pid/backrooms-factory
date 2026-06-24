@@ -226,18 +226,27 @@ export class Renderer {
   }
 
   // soft-edged wedge from (sx,sy) facing `ang`, half-width `half` radians.
-  // Reveal is strong up close and fades with distance, so far things go dark.
+  // Reveal fades BOTH with distance (the radial gradient) AND toward the angular
+  // edges: we stack a few wedges from narrow+strong to wide+weak, so under the
+  // destination-out compositing the centre clears fully and the sides feather
+  // out — no hard cut to black at the cone's edge.
   punchCone(lx, sx, sy, r, ang, half) {
-    const g = lx.createRadialGradient(sx, sy, r * 0.1, sx, sy, r);
-    g.addColorStop(0, "rgba(0,0,0,1)");
-    g.addColorStop(0.72, "rgba(0,0,0,0.95)"); // clear most of the way...
-    g.addColorStop(1, "rgba(0,0,0,0)");        // ...then a quick fade at the rim
-    lx.fillStyle = g;
-    lx.beginPath();
-    lx.moveTo(sx, sy);
-    lx.arc(sx, sy, r, ang - half, ang + half);
-    lx.closePath();
-    lx.fill();
+    const steps = 5;
+    for (let i = 0; i < steps; i++) {
+      const f = i / (steps - 1);                 // 0 (core) .. 1 (rim)
+      const hw = half * (0.45 + 0.65 * f);       // each layer a little wider
+      const strength = 1 - 0.85 * f;             // ...and a little weaker
+      const g = lx.createRadialGradient(sx, sy, r * 0.08, sx, sy, r);
+      g.addColorStop(0, `rgba(0,0,0,${strength})`);
+      g.addColorStop(0.7, `rgba(0,0,0,${strength * 0.9})`);
+      g.addColorStop(1, "rgba(0,0,0,0)");        // quick distance fade at the rim
+      lx.fillStyle = g;
+      lx.beginPath();
+      lx.moveTo(sx, sy);
+      lx.arc(sx, sy, r, ang - hw, ang + hw);
+      lx.closePath();
+      lx.fill();
+    }
   }
 
   // hostile mobs (room-local coords): the kind's sprite if loaded, else a
@@ -397,7 +406,7 @@ export class Renderer {
     const p = room.palette || {};
     const x0 = xf.t.x, y0 = xf.t.y;
     const hm = room.height || 1;            // ceiling height multiplier (tall pools/houses)
-    const TOP = 1.3 * hm, BOT = 0.5 + (hm - 1) * 0.35; // top scales fully; bottom rises a touch
+    const TOP = 1.3 * hm, BOT = TOP / 3;    // far wall is full height; near wall is 1/3 of it
 
     // wall segments along an x-axis edge, leaving gaps where doors are
     const segs = (side) => {
