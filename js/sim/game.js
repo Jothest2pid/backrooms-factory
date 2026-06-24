@@ -450,6 +450,8 @@ export class Game {
     let dir = this.input.dir();
     const moving = dir.x || dir.y;
     if (moving) { dir = norm(dir); p.dir = dir; }
+    p.moving = !!moving;                          // for the walk animation
+    p.animClock = (p.animClock || 0) + (moving ? dt : 0);
     // sprinting burns stamina; it regenerates when you don't (god = unlimited)
     const running = this.input.run() && moving && (this.god || this.stamina > 1);
     if (this.god) this.stamina = this.maxStamina;
