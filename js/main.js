@@ -163,8 +163,8 @@ function buildGhost(tile) {
 function handleClick(hovered, tile, pt) {
   if (game.held) { game.placeHeld(tile.tx, tile.ty); return; }   // drop what we carry
   const sel = game.selectedItem();
-  if (sel === "musket" || sel === "rifle" || sel === "bow" || sel === "crossbow") { game.fire(pt); return; } // shoot
-  if ((sel === "grenade" || sel === "molotov") && (game.inventory[sel] || 0) > 0) { game.throwItem(sel, pt); return; } // throw
+  if (sel && ITEMS[sel] && ITEMS[sel].ranged) { game.fire(pt); return; }   // shoot any gun/bow
+  if (sel && game.throwable(sel)) { game.throwItem(sel, pt); return; }      // lob any thrown weapon
   if (game.selectedUsable()) { game.useUsable(game.selectedUsable()); return; } // string trail / drink
   if (game.selectedBuildable()) { game.placeBuildable(tile.tx, tile.ty); return; } // place selected building
   if (hovered && hovered.kind === "entity") { game.interactEntity(hovered.ref); return; } // load/collect machine

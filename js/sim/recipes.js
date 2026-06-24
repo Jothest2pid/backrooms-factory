@@ -99,6 +99,73 @@ export const RECIPES = [
   { id: "lead_ball", out: ["lead_ball", 4], in: [["galena", 1]], station: "workbench" },
   { id: "grenade", out: ["grenade", 2], in: [["black_sulfur", 1], ["scrap", 1]], station: "workbench" },
 
+  // ===== MODULAR WEAPON PARTS (§6) — craft at the workbench, assemble at tinker =====
+  { id: "pipe_frame", out: ["pipe_frame", 1], in: [["scrap", 4], ["wooden_gear", 1]], station: "workbench" },
+  { id: "sidearm_frame", out: ["sidearm_frame", 1], in: [["machine_frame", 1], ["electrum_plate", 1]], station: "workbench" },
+  { id: "scatter_frame", out: ["scatter_frame", 1], in: [["machine_frame", 1], ["scrap", 2]], station: "workbench" },
+  { id: "longgun_frame", out: ["longgun_frame", 1], in: [["machine_frame", 1], ["stygian_plate", 1]], station: "workbench" },
+  { id: "nailgun_frame", out: ["nailgun_frame", 1], in: [["scrap", 3], ["wire", 1]], station: "workbench" },
+  { id: "flare_frame", out: ["flare_frame", 1], in: [["scrap", 2], ["brimstone", 1]], station: "workbench" },
+  { id: "short_barrel", out: ["short_barrel", 1], in: [["scrap", 2]], station: "workbench" },
+  { id: "long_barrel", out: ["long_barrel", 1], in: [["scrap", 3]], station: "workbench" },
+  { id: "rifled_barrel", out: ["rifled_barrel", 1], in: [["stygian_plate", 1], ["scrap", 1]], station: "workbench" },
+  { id: "heavy_barrel", out: ["heavy_barrel", 1], in: [["stygian_plate", 2]], station: "workbench" },
+  { id: "foldglass_barrel", out: ["foldglass_barrel", 1], in: [["foldglass", 1], ["scrap", 1]], station: "workbench" },
+  { id: "wooden_stock", out: ["wooden_stock", 1], in: [["plank", 2]], station: "workbench" },
+  { id: "padded_stock", out: ["padded_stock", 1], in: [["plank", 1], ["fabric", 2]], station: "workbench" },
+  { id: "folding_stock", out: ["folding_stock", 1], in: [["scrap", 1], ["wire", 1]], station: "workbench" },
+  { id: "box_mag", out: ["box_mag", 1], in: [["scrap", 2]], station: "workbench" },
+  { id: "drum_mag", out: ["drum_mag", 1], in: [["scrap", 3], ["wire", 1]], station: "workbench" },
+  { id: "speed_mag", out: ["speed_mag", 1], in: [["scrap", 2], ["wire", 1]], station: "workbench" },
+  { id: "scope", out: ["scope", 1], in: [["lens", 1], ["scrap", 1]], station: "workbench" },
+  { id: "bayonet", out: ["bayonet", 1], in: [["scrap", 1], ["stygian_plate", 1]], station: "workbench" },
+  { id: "suppressor", out: ["suppressor", 1], in: [["scrap", 2], ["fabric", 1]], station: "workbench" },
+  { id: "incendiary_chamber", out: ["incendiary_chamber", 1], in: [["scrap", 1], ["brimstone", 1]], station: "workbench" },
+  { id: "foldpiercing_chamber", out: ["foldpiercing_chamber", 1], in: [["foldglass", 1], ["scrap", 1]], station: "workbench" },
+
+  // ===== GUN ASSEMBLY (tinker bench: frame + parts -> a finished gun) =====
+  { id: "asm_pipe_gun", out: ["pipe_gun", 1], in: [["pipe_frame", 1], ["short_barrel", 1]], station: "tinker" },
+  { id: "asm_pistol", out: ["pistol", 1], in: [["sidearm_frame", 1], ["short_barrel", 1], ["box_mag", 1]], station: "tinker" },
+  { id: "asm_smg", out: ["smg", 1], in: [["sidearm_frame", 1], ["short_barrel", 1], ["drum_mag", 1], ["folding_stock", 1]], station: "tinker" },
+  { id: "asm_hunting_rifle", out: ["hunting_rifle", 1], in: [["longgun_frame", 1], ["long_barrel", 1], ["wooden_stock", 1], ["box_mag", 1]], station: "tinker" },
+  { id: "asm_marksman_rifle", out: ["marksman_rifle", 1], in: [["longgun_frame", 1], ["rifled_barrel", 1], ["padded_stock", 1], ["scope", 1], ["box_mag", 1]], station: "tinker" },
+  { id: "asm_sniper_rifle", out: ["sniper_rifle", 1], in: [["longgun_frame", 1], ["rifled_barrel", 1], ["brass_scope", 1], ["box_mag", 1]], station: "tinker" },
+  { id: "asm_sawn_shotgun", out: ["sawn_shotgun", 1], in: [["scatter_frame", 1], ["sawnoff_barrel", 1]], station: "tinker" },
+  { id: "asm_combat_shotgun", out: ["combat_shotgun", 1], in: [["scatter_frame", 1], ["short_barrel", 1], ["drum_mag", 1]], station: "tinker" },
+  { id: "asm_heavy_rifle", out: ["heavy_rifle", 1], in: [["longgun_frame", 1], ["heavy_barrel", 1], ["drum_mag", 1]], station: "tinker" },
+  { id: "asm_auto_rifle", out: ["auto_rifle", 1], in: [["longgun_frame", 1], ["long_barrel", 1], ["extended_drum", 1]], station: "tinker" },
+  { id: "asm_ranger_rifle", out: ["ranger_rifle", 1], in: [["longgun_frame", 1], ["chrome_barrel", 1], ["walnut_stock", 1], ["box_mag", 1]], station: "tinker" },
+  { id: "asm_fold_rifle", out: ["fold_rifle", 1], in: [["longgun_frame", 1], ["foldglass_barrel", 1], ["box_mag", 1]], station: "tinker" },
+  { id: "asm_nail_gun", out: ["nail_gun", 1], in: [["nailgun_frame", 1], ["box_mag", 1]], station: "tinker" },
+  { id: "asm_flare_gun", out: ["flare_gun", 1], in: [["flare_frame", 1], ["short_barrel", 1]], station: "tinker" },
+  { id: "asm_arc_gun", out: ["arc_gun", 1], in: [["longgun_frame", 1], ["circuit_board", 1], ["capacitor", 1], ["foldglass", 1]], station: "tinker" },
+  { id: "asm_railgun", out: ["railgun", 1], in: [["longgun_frame", 1], ["magnetiron", 2], ["circuit_board", 1], ["foldglass", 1]], station: "tinker" },
+
+  // ===== AMMO (§7) — workbench. black sulfur is the powder. =====
+  { id: "casing", out: ["casing", 4], in: [["scrap", 1]], station: "workbench" },
+  { id: "paper_cartridge", out: ["paper_cartridge", 4], in: [["black_sulfur", 1], ["lead_ball", 1]], station: "workbench" },
+  { id: "bullet", out: ["bullet", 4], in: [["casing", 1], ["black_sulfur", 1], ["lead_ball", 1]], station: "workbench" },
+  { id: "ap_bullet", out: ["ap_bullet", 4], in: [["bullet", 2], ["stygian_plate", 1]], station: "workbench" },
+  { id: "incendiary_bullet", out: ["incendiary_bullet", 4], in: [["bullet", 2], ["brimstone", 1]], station: "workbench" },
+  { id: "heavy_bullet", out: ["heavy_bullet", 4], in: [["casing", 1], ["black_sulfur", 1], ["galena", 1]], station: "workbench" },
+  { id: "shell", out: ["shell", 2], in: [["casing", 1], ["black_sulfur", 1], ["lead_ball", 2]], station: "workbench" },
+  { id: "energy_cell", out: ["energy_cell", 2], in: [["battery", 1], ["wire", 1], ["capacitor", 1]], station: "workbench" },
+  { id: "broadhead_arrow", out: ["broadhead_arrow", 4], in: [["arrow", 2], ["stygian_plate", 1]], station: "workbench" },
+  { id: "explosive_arrow", out: ["explosive_arrow", 2], in: [["arrow", 2], ["black_sulfur", 1]], station: "workbench" },
+  { id: "fold_arrow", out: ["fold_arrow", 2], in: [["arrow", 2], ["foldglass", 1]], station: "workbench" },
+  { id: "flare_ammo", out: ["flare", 4], in: [["black_sulfur", 1], ["fabric", 1]], station: "workbench" },
+
+  // ===== THROWN explosives (§7) =====
+  { id: "dynamite", out: ["dynamite", 2], in: [["black_sulfur", 2], ["fabric", 1]], station: "workbench" },
+  { id: "pipe_bomb", out: ["pipe_bomb", 2], in: [["black_sulfur", 1], ["scrap", 2]], station: "workbench" },
+  { id: "smoke_bomb", out: ["smoke_bomb", 2], in: [["black_sulfur", 1], ["chlorine", 1]], station: "workbench" },
+
+  // ===== FARM machines (§9) — workbench buildables =====
+  { id: "planter", out: ["planter", 1], in: [["plank", 4], ["wire", 1]], station: "workbench" },
+  { id: "mushroom_bed", out: ["mushroom_bed", 1], in: [["plank", 4], ["spores", 1]], station: "workbench" },
+  { id: "worm_bin", out: ["worm_bin", 1], in: [["plank", 4], ["fabric", 2]], station: "workbench" },
+  { id: "compost", out: ["compost", 2], in: [["food", 1]], station: "hand" }, // rot food → fertilizer
+
   // ===== TINKER (needs a tinker bench) — refine duplicates / merge different =====
   // refine: fuse duplicates into a stronger version
   { id: "swift_sneakers", out: ["sprint_boots", 1], in: [["worn_sneakers", 2]], station: "tinker" },
@@ -286,12 +353,34 @@ export const MACHINE_RECIPES = {
     { in: [["silk_thread", 2]], out: ["silk_cloth", 1], time: 1.5 },
     { in: [["fabric", 1]], out: ["string", 2], time: 1 },
   ],
-  // animal pen — feed grain/compost, get food + leather over time (husbandry)
+  // animal pen — husbandry. With a LIVESTOCK animal loaded it's kept (a catalyst,
+  // never consumed) and converts feed into product; these are listed first so a
+  // stocked pen always uses them. Without an animal it falls back to the plain
+  // grain/compost recipes below (so the pen still works early).
   pen: [
+    { in: [["pale_hen", 1], ["grain", 1]], out: ["egg", 2], time: 5, keep: ["pale_hen"] },
+    { in: [["cave_swine", 1], ["grain", 2]], out: ["meat", 2], time: 6, keep: ["cave_swine"], extra: [["leather", 1]] },
+    { in: [["blind_goat", 1], ["grain", 1]], out: ["milk", 2], time: 6, keep: ["blind_goat"] },
+    { in: [["almond_moth", 1], ["spores", 1]], out: ["almond_water", 2], time: 5, keep: ["almond_moth"] },
     { in: [["grain", 2]], out: ["meat", 1], time: 6 },
     { in: [["grain", 1]], out: ["egg", 2], time: 5 },
     { in: [["compost", 2]], out: ["leather", 1], time: 7 },
     { in: [["grain", 3]], out: ["milk", 1], time: 6 },
+  ],
+  // crop planter — seeds <-> grain (a renewable food loop)
+  planter: [
+    { in: [["seeds", 1]], out: ["grain", 2], time: 5 },
+    { in: [["grain", 1]], out: ["seeds", 2], time: 4 },
+  ],
+  // dark mushroom bed — spores grow + become food (light-free organics)
+  mushroom: [
+    { in: [["spores", 1]], out: ["spores", 2], time: 6 },
+    { in: [["spores", 2]], out: ["food", 1], time: 4 },
+  ],
+  // silk worm bin — compost into silk; fabric back into compost
+  worm: [
+    { in: [["compost", 1]], out: ["silk", 1], time: 6 },
+    { in: [["fabric", 1]], out: ["compost", 1], time: 3 },
   ],
 };
 

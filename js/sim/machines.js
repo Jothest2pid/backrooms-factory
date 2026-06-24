@@ -38,11 +38,13 @@ export function tickMachine(e, dt) {
   e.progress = (e.progress || 0) + dt * (1 + mod.speed);
   if (e.progress >= r.time) {
     e.progress = 0;
-    for (const [it, n] of r.in) e.input[it] -= n;
+    // consume inputs — except `keep` catalysts (e.g. a live animal in the pen)
+    for (const [it, n] of r.in) if (!(r.keep && r.keep.includes(it))) e.input[it] -= n;
     if (r.fuel) e.fuel -= r.fuel;
     let n = r.out[1];
     if (mod.prod > 0 && Math.random() < mod.prod) n += 1; // productivity bonus
     e.output[r.out[0]] = (e.output[r.out[0]] || 0) + n;
+    if (r.extra) for (const [it, k] of r.extra) e.output[it] = (e.output[it] || 0) + k; // byproduct
   }
 }
 

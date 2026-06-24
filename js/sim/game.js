@@ -15,7 +15,7 @@ import { toolStats } from "./tools.js";
 import { tickMachine, interactMachine } from "./machines.js";
 import { computePower } from "./power.js";
 import { tickTransport } from "./logistics.js";
-import { spawnMobs, tickMobs, meleeMob, fireMusket, fireBow, throwExplosive, tickTurrets } from "./mobs.js";
+import { spawnMobs, tickMobs, meleeMob, fireMusket, fireGun, fireBow, throwExplosive, tickTurrets } from "./mobs.js";
 import { rollLoot } from "./loot.js";
 import { sfx } from "./audio.js";
 
@@ -25,7 +25,7 @@ import { telemetry } from "./telemetry.js";
 const EDIBLE = { food: 12, bread: 18, meat: 22, egg: 8, milk: 10, tonic: 45, bandages: 30, coffee: 8 };
 const USABLE = new Set(["string", "almond_water", ...Object.keys(EDIBLE)]);
 // thrown weapons that can sit on the hotbar and be lobbed with left-click
-const THROWN = new Set(["grenade", "molotov"]);
+const THROWN = new Set(["grenade", "molotov", "dynamite", "pipe_bomb", "smoke_bomb", "firecracker"]);
 
 export class Game {
   constructor(world, input) {
@@ -152,13 +152,16 @@ export class Game {
     sfx("eat"); this.lastEvent = "drank almond water (+20 HP)";
   }
 
-  // fire/throw the equipped ranged weapon toward a world-space aim point
+  // fire the equipped ranged weapon toward a world-space aim point. Routes by the
+  // item's flags: bows shoot arrows, guns read their `weapon` stat block.
   fire(aim) {
-    const w = this.equippedTool();
-    if (w === "bow" || w === "crossbow") fireBow(this, aim);
+    const id = this.equippedTool(), spec = ITEMS[id] || {};
+    if (spec.bow) fireBow(this, aim, spec.weapon);
+    else if (spec.weapon) fireGun(this, aim, id, spec.weapon);
     else fireMusket(this, aim);
   }
   throwItem(item, aim) { throwExplosive(this, item, aim); }
+  throwable(item) { return THROWN.has(item) && (this.inventory[item] || 0) > 0; }
 
   toggleString() {
     this.layingString = !this.layingString;

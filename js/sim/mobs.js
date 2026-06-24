@@ -5,6 +5,20 @@
 
 import { dist } from "../core/vec.js";
 import { sfx } from "./audio.js";
+import { ITEMS, itemName } from "./registry.js";
+
+// mobs inside `cone` half-angle of `ang`, within `range`, nearest first
+function targetsInCone(game, ang, range, cone) {
+  const p = game.player.pos, out = [];
+  for (const m of game.current.mobs || []) {
+    const d = dist(p, m);
+    if (d > range) continue;
+    const a = Math.atan2(m.y - p.y, m.x - p.x);
+    const da = Math.abs(((a - ang + Math.PI) % (2 * Math.PI)) - Math.PI);
+    if (da < cone) out.push({ m, d });
+  }
+  return out.sort((x, y) => x.d - y.d);
+}
 
 // rotate angle `cur` toward `target` by at most `step` radians (shortest way)
 function turnToward(cur, target, step) {
@@ -90,63 +104,77 @@ export function meleeMob(game, m, melee) {
   game.lastEvent = m.hp > 0 ? `hit it (${Math.max(0, m.hp)} hp)` : "killed it";
 }
 
-// fire the equipped gun toward an aim point: nearest mob in a narrow cone.
-// musket burns stygian powder for 40 dmg; the rifle burns crafted ammo for 75
-// at longer range and a tighter cone.
-export function fireMusket(game, aim) {
-  const rifle = game.equippedTool() === "rifle";
-  const ammoItem = rifle ? "ammo" : "stygian_powder";
-  if ((game.inventory[ammoItem] || 0) < 1) {
-    game.lastEvent = rifle ? "out of ammo — craft more" : "out of ammo — crush stygium into powder";
-    return;
-  }
-  game.inventory[ammoItem] -= 1;
-  const range = rifle ? 20 : 14, cone = rifle ? 0.18 : 0.28, dmg = rifle ? 75 : 40;
-  const p = game.player.pos;
-  const ang = Math.atan2(aim.y - p.y, aim.x - p.x);
-  let best = null, bestD = 1e9;
-  for (const m of game.current.mobs || []) {
-    const d = dist(p, m);
-    if (d > range) continue;
-    const a = Math.atan2(m.y - p.y, m.x - p.x);
-    const da = Math.abs(((a - ang + Math.PI) % (2 * Math.PI)) - Math.PI);
-    if (da < cone && d < bestD) { best = m; bestD = d; }
-  }
+// fire any modular gun: reads the weapon's stat block, spends the best available
+// ammo variant, and applies scatter (pellets to the nearest N) / pierce (a line
+// through several) + variant modifiers (AP pierces, incendiary/heavy hit harder).
+export function fireGun(game, aim, id, w) {
+  const ammoList = Array.isArray(w.ammo) ? w.ammo : [w.ammo];
+  const ammo = ammoList.find((a) => (game.inventory[a] || 0) >= 1);
+  if (!ammo) { game.lastEvent = `out of ammo for ${itemName(id)}`; return; }
+  game.inventory[ammo] -= 1;
+  let dmg = w.dmg, pierce = w.pierce || 0;
+  if (ammo === "incendiary_bullet") dmg *= 1.3;
+  if (ammo === "heavy_bullet") dmg *= 1.25;
+  if (ammo === "ap_bullet") pierce += 1;
+  const shots = w.scatter || (1 + pierce); // scatter = pellets; else line of pierce+1
+  const p = game.player.pos, ang = Math.atan2(aim.y - p.y, aim.x - p.x);
+  const cands = targetsInCone(game, ang, w.range, w.cone);
+  let hits = 0;
+  for (let i = 0; i < shots && i < cands.length; i++) { cands[i].m.hp -= dmg; hits++; }
+  game.current.mobs = (game.current.mobs || []).filter((m) => m.hp > 0);
   game._muzzle = { x: p.x, y: p.y, ang, t: 0.1 }; sfx("shoot");
-  const name = rifle ? "rifle" : "musket";
-  if (best) { best.hp -= dmg; game.lastEvent = best.hp <= 0 ? `${name} — kill!` : `${name} hit!`; game.current.mobs = game.current.mobs.filter((m) => m.hp > 0); }
-  else game.lastEvent = `${name} — missed`;
+  game.lastEvent = hits ? `${itemName(id)} — hit ${hits}!` : `${itemName(id)} — missed`;
 }
 
-// bow/crossbow: fire an arrow at the nearest mob in a cone (recoverable-ish)
-export function fireBow(game, aim) {
-  if ((game.inventory.arrow || 0) < 1) { game.lastEvent = "out of arrows"; return; }
-  game.inventory.arrow -= 1;
-  const p = game.player.pos;
-  const ang = Math.atan2(aim.y - p.y, aim.x - p.x);
-  let best = null, bd = 1e9;
-  for (const m of game.current.mobs || []) {
-    const d = dist(p, m); if (d > 16) continue;
-    const a = Math.atan2(m.y - p.y, m.x - p.x);
-    if (Math.abs(((a - ang + Math.PI) % (2 * Math.PI)) - Math.PI) < 0.2 && d < bd) { best = m; bd = d; }
-  }
+// legacy entry kept for any old callers: route the equipped gun through fireGun
+export function fireMusket(game, aim) {
+  const id = game.equippedTool(), w = (ITEMS[id] && ITEMS[id].weapon) || ITEMS.musket.weapon;
+  fireGun(game, aim, id, w);
+}
+
+// bow/crossbow: fire an arrow at the nearest mob in a cone. Picks the best loaded
+// arrow variant — broadhead (+dmg), fold (pierces), explosive (small AoE).
+export function fireBow(game, aim, w) {
+  const variants = ["explosive_arrow", "fold_arrow", "broadhead_arrow", "arrow"];
+  const ammo = variants.find((a) => (game.inventory[a] || 0) >= 1);
+  if (!ammo) { game.lastEvent = "out of arrows"; return; }
+  game.inventory[ammo] -= 1;
+  const range = (w && w.range) || 16, cone = (w && w.cone) || 0.2;
+  const p = game.player.pos, ang = Math.atan2(aim.y - p.y, aim.x - p.x);
   game._muzzle = { x: p.x, y: p.y, ang, t: 0.1 }; sfx("bow");
-  if (best) { best.hp -= 30; game.lastEvent = best.hp <= 0 ? "arrow — kill!" : "arrow hit!"; game.current.mobs = game.current.mobs.filter((m) => m.hp > 0); }
-  else game.lastEvent = "arrow — missed";
-}
-
-// throw a grenade/molotov: AoE damage to mobs near the aim point
-export function throwExplosive(game, item, aim) {
-  if ((game.inventory[item] || 0) < 1) { game.lastEvent = `no ${item}`; return; }
-  game.inventory[item] -= 1;
-  const dmg = item === "molotov" ? 30 : 50, r = item === "molotov" ? 3.5 : 2.8;
-  let hit = 0;
-  for (const m of game.current.mobs || []) {
-    if (Math.hypot(m.x - aim.x, m.y - aim.y) <= r) { m.hp -= dmg; hit++; }
+  let dmg = 30, shots = 1, aoe = 0;
+  if (ammo === "broadhead_arrow") dmg = 48;
+  if (ammo === "fold_arrow") { dmg = 38; shots = 3; }       // pierces a line
+  if (ammo === "explosive_arrow") { dmg = 22; aoe = 2.6; }  // bursts on impact
+  const cands = targetsInCone(game, ang, range, cone);
+  let hits = 0;
+  for (let i = 0; i < shots && i < cands.length; i++) { cands[i].m.hp -= dmg; hits++; }
+  if (aoe && cands.length) { // explosive: splash around the first target
+    const t = cands[0].m;
+    for (const m of game.current.mobs || []) if (m !== t && Math.hypot(m.x - t.x, m.y - t.y) <= aoe) m.hp -= dmg;
+    game._blast = { x: t.x, y: t.y, r: aoe, t: 0.2 }; sfx("boom");
   }
   game.current.mobs = (game.current.mobs || []).filter((m) => m.hp > 0);
-  game._blast = { x: aim.x, y: aim.y, r, t: 0.25 }; sfx("boom");
-  game.lastEvent = hit ? `${item} — hit ${hit}!` : `${item} — boom`;
+  game.lastEvent = hits ? `${itemName(ammo)} — hit ${hits}!` : "arrow — missed";
+}
+
+// throw a grenade/molotov/dynamite/etc: AoE damage to mobs near the aim point.
+const THROW_STATS = {
+  molotov: { dmg: 30, r: 3.5 }, grenade: { dmg: 50, r: 2.8 },
+  dynamite: { dmg: 95, r: 3.8 }, pipe_bomb: { dmg: 60, r: 3.0 },
+  smoke_bomb: { dmg: 0, r: 3.5 }, firecracker: { dmg: 0, r: 2.0 },
+};
+export function throwExplosive(game, item, aim) {
+  if ((game.inventory[item] || 0) < 1) { game.lastEvent = `no ${itemName(item)}`; return; }
+  game.inventory[item] -= 1;
+  const s = THROW_STATS[item] || { dmg: 40, r: 2.6 };
+  let hit = 0;
+  for (const m of game.current.mobs || []) {
+    if (Math.hypot(m.x - aim.x, m.y - aim.y) <= s.r) { if (s.dmg) m.hp -= s.dmg; hit++; }
+  }
+  game.current.mobs = (game.current.mobs || []).filter((m) => m.hp > 0);
+  game._blast = { x: aim.x, y: aim.y, r: s.r, t: 0.25 }; sfx("boom");
+  game.lastEvent = hit ? `${itemName(item)} — hit ${hit}!` : `${itemName(item)} — boom`;
 }
 
 // auto-turrets: target the nearest mob in range and fire while powered + fed

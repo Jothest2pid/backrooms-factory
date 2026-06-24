@@ -114,12 +114,12 @@ export const ITEMS = {
   electrum_pick: { name: "Electrum pickaxe", kind: KIND.TOOL, stack: 1 },
   electrum_axe:  { name: "Electrum axe", kind: KIND.TOOL, stack: 1 },
   electrum_blade:{ name: "Electrum blade", kind: KIND.TOOL, stack: 1 },
-  musket:        { name: "Musket", kind: KIND.TOOL, stack: 1 },
+  musket:        { name: "Musket", kind: KIND.TOOL, stack: 1, ranged: true, gun: true, weapon: { ammo: ["paper_cartridge", "stygian_powder"], dmg: 40, range: 14, cone: 0.28 } },
   // mid-era stygian tools + the rifle
   stygian_pick:  { name: "Stygian pickaxe", kind: KIND.TOOL, stack: 1 },
   stygian_axe:   { name: "Stygian axe", kind: KIND.TOOL, stack: 1 },
   stygian_blade: { name: "Stygian blade", kind: KIND.TOOL, stack: 1 },
-  rifle:         { name: "Rifle", kind: KIND.TOOL, stack: 1 },
+  rifle:         { name: "Rifle", kind: KIND.TOOL, stack: 1, ranged: true, gun: true, weapon: { ammo: ["incendiary_bullet", "ap_bullet", "heavy_bullet", "bullet", "ammo"], dmg: 75, range: 20, cone: 0.18 } },
   fire_axe:      { name: "Fire axe", kind: KIND.TOOL, stack: 1 }, // found, not crafted
 
   // ---- buildables ----
@@ -169,8 +169,8 @@ export const ITEMS = {
   animal_pen:    { name: "Animal pen", kind: KIND.BUILDABLE, stack: 20, w: 2, h: 2, color: "#7a6a44", machine: "pen" },
 
   // ---- weapons / ammo as items (modular + thrown + bow) ----
-  bow:           { name: "Bow", kind: KIND.TOOL, stack: 1, ranged: true, bow: true },
-  crossbow:      { name: "Crossbow", kind: KIND.TOOL, stack: 1, ranged: true, bow: true },
+  bow:           { name: "Bow", kind: KIND.TOOL, stack: 1, ranged: true, bow: true, weapon: { range: 16, cone: 0.2 } },
+  crossbow:      { name: "Crossbow", kind: KIND.TOOL, stack: 1, ranged: true, bow: true, weapon: { range: 18, cone: 0.16 } },
   bladed_yoyo:   { name: "Bladed yo-yo", kind: KIND.TOOL, stack: 1 },
   arrow:         { name: "Arrow", kind: KIND.INTERMEDIATE, stack: 200, color: "#b8a878" },
   grenade:       { name: "Grenade", kind: KIND.INTERMEDIATE, stack: 50, color: "#5a6a4a" },
@@ -463,6 +463,90 @@ export const ITEMS = {
   firecracker:   { name: "Firecracker", kind: KIND.INTERMEDIATE, stack: 50, color: "#d55" },
   coffee:        { name: "Coffee", kind: KIND.RESOURCE, stack: 50, color: "#642" },
   bandages:      { name: "Bandages", kind: KIND.RESOURCE, stack: 50, color: "#eed" },
+
+  // ===========================================================================
+  // MODULAR WEAPONS (§6) — parts (frame + barrel + stock + mag + mod) assemble
+  // at the tinker bench into named guns. Each gun carries a `weapon` stat block.
+  // ===========================================================================
+  // frames (set the class)
+  pipe_frame:    { name: "Pipe frame", kind: KIND.INTERMEDIATE, stack: 50, color: "#778", part: "frame" },
+  sidearm_frame: { name: "Sidearm frame", kind: KIND.INTERMEDIATE, stack: 50, color: "#668", part: "frame" },
+  scatter_frame: { name: "Scattergun frame", kind: KIND.INTERMEDIATE, stack: 50, color: "#766", part: "frame" },
+  longgun_frame: { name: "Longgun frame", kind: KIND.INTERMEDIATE, stack: 50, color: "#656", part: "frame" },
+  nailgun_frame: { name: "Nail-gun frame", kind: KIND.INTERMEDIATE, stack: 50, color: "#887", part: "frame" },
+  flare_frame:   { name: "Flare-gun frame", kind: KIND.INTERMEDIATE, stack: 50, color: "#a64", part: "frame" },
+  // barrels
+  short_barrel:  { name: "Short barrel", kind: KIND.INTERMEDIATE, stack: 50, color: "#889", part: "barrel" },
+  long_barrel:   { name: "Long barrel", kind: KIND.INTERMEDIATE, stack: 50, color: "#99a", part: "barrel" },
+  rifled_barrel: { name: "Rifled barrel", kind: KIND.INTERMEDIATE, stack: 50, color: "#9ab", part: "barrel" },
+  heavy_barrel:  { name: "Heavy barrel", kind: KIND.INTERMEDIATE, stack: 50, color: "#778", part: "barrel" },
+  foldglass_barrel:{ name: "Foldglass barrel", kind: KIND.INTERMEDIATE, stack: 50, color: "#aed", part: "barrel" },
+  sawnoff_barrel:{ name: "Sawn-off barrel", kind: KIND.INTERMEDIATE, stack: 50, color: "#987", part: "barrel" }, // treasure
+  chrome_barrel: { name: "Chrome long barrel", kind: KIND.INTERMEDIATE, stack: 50, color: "#cde", part: "barrel" }, // treasure
+  // stocks / mags / mods
+  wooden_stock:  { name: "Wooden stock", kind: KIND.INTERMEDIATE, stack: 50, color: "#963", part: "stock" },
+  padded_stock:  { name: "Padded stock", kind: KIND.INTERMEDIATE, stack: 50, color: "#a85", part: "stock" },
+  folding_stock: { name: "Folding stock", kind: KIND.INTERMEDIATE, stack: 50, color: "#778", part: "stock" },
+  walnut_stock:  { name: "Walnut stock", kind: KIND.INTERMEDIATE, stack: 50, color: "#852", part: "stock" }, // treasure
+  box_mag:       { name: "Box magazine", kind: KIND.INTERMEDIATE, stack: 50, color: "#556", part: "mag" },
+  drum_mag:      { name: "Drum magazine", kind: KIND.INTERMEDIATE, stack: 50, color: "#665", part: "mag" },
+  speed_mag:     { name: "Speed magazine", kind: KIND.INTERMEDIATE, stack: 50, color: "#575", part: "mag" },
+  extended_drum: { name: "Extended drum", kind: KIND.INTERMEDIATE, stack: 50, color: "#776", part: "mag" }, // treasure
+  scope:         { name: "Scope", kind: KIND.INTERMEDIATE, stack: 50, color: "#345", part: "mod" },
+  brass_scope:   { name: "Brass scope", kind: KIND.INTERMEDIATE, stack: 50, color: "#b93", part: "mod" }, // treasure
+  bayonet:       { name: "Bayonet", kind: KIND.INTERMEDIATE, stack: 50, color: "#aab", part: "mod" },
+  suppressor:    { name: "Suppressor", kind: KIND.INTERMEDIATE, stack: 50, color: "#333", part: "mod" },
+  incendiary_chamber:{ name: "Incendiary chamber", kind: KIND.INTERMEDIATE, stack: 50, color: "#b63", part: "mod" },
+  foldpiercing_chamber:{ name: "Fold-piercing chamber", kind: KIND.INTERMEDIATE, stack: 50, color: "#9ed", part: "mod" },
+
+  // ---- assembled guns (tinker results; `weapon` = {ammo, dmg, range, cone, pierce, scatter}) ----
+  pipe_gun:      { name: "Pipe gun", kind: KIND.TOOL, stack: 1, ranged: true, gun: true, weapon: { ammo: ["paper_cartridge"], dmg: 26, range: 11, cone: 0.32 } },
+  pistol:        { name: "Pistol", kind: KIND.TOOL, stack: 1, ranged: true, gun: true, weapon: { ammo: ["bullet"], dmg: 34, range: 14, cone: 0.2 } },
+  smg:           { name: "SMG", kind: KIND.TOOL, stack: 1, ranged: true, gun: true, weapon: { ammo: ["bullet"], dmg: 20, range: 13, cone: 0.24 } },
+  hunting_rifle: { name: "Hunting rifle", kind: KIND.TOOL, stack: 1, ranged: true, gun: true, weapon: { ammo: ["bullet"], dmg: 68, range: 22, cone: 0.12 } },
+  marksman_rifle:{ name: "Marksman rifle", kind: KIND.TOOL, stack: 1, ranged: true, gun: true, weapon: { ammo: ["ap_bullet", "bullet"], dmg: 95, range: 30, cone: 0.06, pierce: 1 } },
+  sniper_rifle:  { name: "Sniper rifle", kind: KIND.TOOL, stack: 1, ranged: true, gun: true, weapon: { ammo: ["ap_bullet", "bullet"], dmg: 110, range: 34, cone: 0.05, pierce: 1 } },
+  sawn_shotgun:  { name: "Sawn-off shotgun", kind: KIND.TOOL, stack: 1, ranged: true, gun: true, weapon: { ammo: ["shell"], dmg: 20, range: 8, cone: 0.55, scatter: 4 } },
+  combat_shotgun:{ name: "Combat shotgun", kind: KIND.TOOL, stack: 1, ranged: true, gun: true, weapon: { ammo: ["shell"], dmg: 16, range: 10, cone: 0.45, scatter: 5 } },
+  heavy_rifle:   { name: "Heavy rifle", kind: KIND.TOOL, stack: 1, ranged: true, gun: true, weapon: { ammo: ["heavy_bullet", "bullet"], dmg: 115, range: 22, cone: 0.1 } },
+  auto_rifle:    { name: "Auto rifle", kind: KIND.TOOL, stack: 1, ranged: true, gun: true, weapon: { ammo: ["bullet"], dmg: 40, range: 20, cone: 0.16 } },
+  ranger_rifle:  { name: "Ranger rifle", kind: KIND.TOOL, stack: 1, ranged: true, gun: true, weapon: { ammo: ["bullet"], dmg: 80, range: 26, cone: 0.08 } },
+  fold_rifle:    { name: "Fold rifle", kind: KIND.TOOL, stack: 1, ranged: true, gun: true, weapon: { ammo: ["bullet"], dmg: 78, range: 26, cone: 0.1, pierce: 2 } },
+  nail_gun:      { name: "Nail gun", kind: KIND.TOOL, stack: 1, ranged: true, gun: true, weapon: { ammo: ["nails"], dmg: 11, range: 12, cone: 0.26 } },
+  flare_gun:     { name: "Flare gun", kind: KIND.TOOL, stack: 1, ranged: true, gun: true, weapon: { ammo: ["flare"], dmg: 14, range: 18, cone: 0.2 } },
+  arc_gun:       { name: "Arc gun", kind: KIND.TOOL, stack: 1, ranged: true, gun: true, weapon: { ammo: ["energy_cell"], dmg: 30, range: 14, cone: 0.4, scatter: 3 } },
+  railgun:       { name: "Railgun", kind: KIND.TOOL, stack: 1, ranged: true, gun: true, weapon: { ammo: ["energy_cell"], dmg: 120, range: 30, cone: 0.05, pierce: 4 } },
+
+  // ---- ammo families (§7) ----
+  casing:        { name: "Casing", kind: KIND.INTERMEDIATE, stack: 200, color: "#cb6" },
+  paper_cartridge:{ name: "Paper cartridge", kind: KIND.INTERMEDIATE, stack: 200, color: "#dca" },
+  bullet:        { name: "Bullet", kind: KIND.INTERMEDIATE, stack: 200, color: "#ca6" },
+  ap_bullet:     { name: "AP bullet", kind: KIND.INTERMEDIATE, stack: 200, color: "#9ab" },
+  incendiary_bullet:{ name: "Incendiary bullet", kind: KIND.INTERMEDIATE, stack: 200, color: "#d73" },
+  heavy_bullet:  { name: "Heavy bullet", kind: KIND.INTERMEDIATE, stack: 200, color: "#778" },
+  shell:         { name: "Shotgun shell", kind: KIND.INTERMEDIATE, stack: 200, color: "#b54" },
+  energy_cell:   { name: "Energy cell", kind: KIND.INTERMEDIATE, stack: 200, color: "#5cf" },
+  broadhead_arrow:{ name: "Broadhead arrow", kind: KIND.INTERMEDIATE, stack: 200, color: "#a98" },
+  explosive_arrow:{ name: "Explosive arrow", kind: KIND.INTERMEDIATE, stack: 200, color: "#c63" },
+  fold_arrow:    { name: "Fold arrow", kind: KIND.INTERMEDIATE, stack: 200, color: "#9ed" },
+  flare:         { name: "Flare", kind: KIND.INTERMEDIATE, stack: 200, color: "#e54" },
+
+  // ---- thrown explosives (§7) ----
+  dynamite:      { name: "Dynamite", kind: KIND.INTERMEDIATE, stack: 50, color: "#c44" },
+  pipe_bomb:     { name: "Pipe bomb", kind: KIND.INTERMEDIATE, stack: 50, color: "#887" },
+  smoke_bomb:    { name: "Smoke bomb", kind: KIND.INTERMEDIATE, stack: 50, color: "#9a9" },
+
+  // ===========================================================================
+  // ANIMAL FARMING (§9) — livestock + farm machines (planter/mushroom/worm/pen).
+  // Animals are CATALYSTS in the pen (kept, not consumed): feed them, get product.
+  // ===========================================================================
+  pale_hen:      { name: "Pale hen", kind: KIND.RESOURCE, stack: 20, color: "#eed", animal: 1 },
+  cave_swine:    { name: "Cave swine", kind: KIND.RESOURCE, stack: 20, color: "#caa", animal: 1 },
+  blind_goat:    { name: "Blind goat", kind: KIND.RESOURCE, stack: 20, color: "#bb9", animal: 1 },
+  almond_moth:   { name: "Almond moth", kind: KIND.RESOURCE, stack: 20, color: "#cd9", animal: 1 },
+  planter:       { name: "Planter", kind: KIND.BUILDABLE, stack: 30, w: 2, h: 1, color: "#6a5a3a", machine: "planter" },
+  mushroom_bed:  { name: "Mushroom bed", kind: KIND.BUILDABLE, stack: 30, w: 2, h: 1, color: "#5a6a4a", machine: "mushroom" },
+  worm_bin:      { name: "Worm bin", kind: KIND.BUILDABLE, stack: 30, w: 1, h: 1, color: "#6a5a44", machine: "worm" },
 };
 
 export const itemName = (id) => (ITEMS[id] ? ITEMS[id].name : id);
