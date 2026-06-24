@@ -215,7 +215,7 @@ export function ensureLoaded(world, room, depth = STREAM_DEPTH) {
 }
 
 export function generateWorld(seed) {
-  const world = { rooms: [], rng: mulberry32(seed >>> 0), grid: new Map() };
+  const world = { rooms: [], rng: mulberry32(seed >>> 0), grid: new Map(), seed: seed >>> 0 };
   const start = makeRoom(world, null, true, 0, 0);
   addStubs(world, start, null);
   start.visited = true;

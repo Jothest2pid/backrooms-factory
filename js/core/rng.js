@@ -1,14 +1,19 @@
 // core/rng.js — deterministic pseudo-randomness
 
-// seeded PRNG -> function returning [0,1)
+// seeded PRNG -> function returning [0,1). state()/restore() expose the internal
+// counter so a save can snapshot exactly where generation left off and resume
+// deterministically (so the streamed world keeps expanding the same way).
 export function mulberry32(seed) {
   let a = seed >>> 0;
-  return function () {
+  const rng = function () {
     a |= 0; a = (a + 0x6D2B79F5) | 0;
     let t = Math.imul(a ^ (a >>> 15), 1 | a);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+  rng.state = () => a >>> 0;
+  rng.restore = (v) => { a = v >>> 0; };
+  return rng;
 }
 
 // stable hash of two ints -> [0,1) (used for per-tile noise)

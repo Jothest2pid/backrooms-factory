@@ -16,6 +16,14 @@ import { onSpritesReady } from "./render/sprites.js";
 import { onFloorReady } from "./render/floor.js";
 import { telemetry } from "./sim/telemetry.js";
 import { resumeAudio } from "./sim/audio.js";
+import { snapshot, restore } from "./sim/save.js";
+
+const SAVE_KEY = "backrooms:save:v1";
+function saveGame() {
+  if (!started) return false;
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(snapshot(game))); return true; } catch (e) { return false; }
+}
+function hasSave() { try { return !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } }
 
 const canvas = document.getElementById("game");
 const renderer = new Renderer(canvas);
@@ -29,6 +37,7 @@ const guide = new Guide(game);
 let last = performance.now();
 let t = 0;
 let started = false;
+let saveTimer = 0; // autosave every ~15s of play
 
 function newGame() {
   const seed = Math.floor(Math.random() * 0xffffffff);
@@ -74,7 +83,11 @@ function frame(now) {
   t += dt;
 
   const a = performance.now();
-  if (started) { game.step(dt); telemetry.tick(dt, game.current.id, game.player.pos.x, game.player.pos.y); }
+  if (started) {
+    game.step(dt); telemetry.tick(dt, game.current.id, game.player.pos.x, game.player.pos.y);
+    saveTimer += dt;
+    if (saveTimer >= 15) { saveTimer = 0; if (saveGame()) game.lastEvent = "✓ game saved"; }
+  }
   const b = performance.now();
   const pt = cursorWorld();
   const hovered = started ? pickInteractable(game.current, pt) : null;
@@ -171,6 +184,30 @@ function start() {
   intro.classList.add("hidden");
 }
 document.getElementById("start-btn").addEventListener("click", start);
+
+// CONTINUE: rebuild the saved game (world graph + player state) and drop back in
+const continueBtn = document.getElementById("continue-btn");
+if (hasSave()) continueBtn.classList.remove("hidden");
+function continueGame() {
+  if (started) return;
+  let data;
+  try { data = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (e) { data = null; }
+  if (!data) { continueBtn.classList.add("hidden"); return; }
+  try {
+    game = restore(data, input);
+    game.rooms.forEach((r) => (r._chunks = null)); // re-bake against current sprites
+  } catch (e) { console.error("load failed", e); return; }
+  craftUI.setGame(game); guide.setGame(game);
+  resumeAudio();
+  started = true; last = performance.now();
+  intro.classList.add("hidden");
+  game.lastEvent = "loaded your save";
+}
+continueBtn.addEventListener("click", continueGame);
+
+// persist on exit so a refresh never loses the last few seconds
+window.addEventListener("beforeunload", saveGame);
+document.addEventListener("visibilitychange", () => { if (document.hidden) saveGame(); });
 // how-to-progress guide (button + H)
 const guideEl = document.getElementById("guide");
 const toggleGuide = () => guideEl.classList.toggle("hidden");
