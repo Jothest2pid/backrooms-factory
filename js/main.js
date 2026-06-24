@@ -165,6 +165,10 @@ function start() {
   intro.classList.add("hidden");
 }
 document.getElementById("start-btn").addEventListener("click", start);
+// how-to-progress guide (button + H)
+const guideEl = document.getElementById("guide");
+const toggleGuide = () => guideEl.classList.toggle("hidden");
+document.getElementById("guide-btn").addEventListener("click", toggleGuide);
 window.addEventListener("keydown", (e) => {
   const k = e.key.toLowerCase();
   if (!started && (k === "enter" || k === " " || k.startsWith("arrow") || "wasd".includes(k))) start();
@@ -174,6 +178,7 @@ window.addEventListener("keydown", (e) => {
   if (k === "c") { craftUI.toggle(); }
   if (k === "i") { craftUI.toggleInv(); }
   if (k === "v") { game.blink(); } // anomalous blink (needs a blink trinket)
+  if (k === "h") { toggleGuide(); } // how-to-progress guide
   if (k === "l") { telemetry.export(); } // download this session's play log
   if (k >= "1" && k <= "9") { game.selectSlot(+k - 1); }
   if (k === "0") { game.sel = -1; } // bare hands / nothing selected

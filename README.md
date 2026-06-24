@@ -33,6 +33,21 @@ static files, so it can also be hosted on any static host such as GitHub Pages.
   blink trinket equipped)
 - ~: god mode, P: debug overlay
 
+<details>
+<summary><b>How to progress (click to open)</b></summary>
+
+1. Break furniture with right click for wood, fabric, scrap and fuel. It sometimes drops loot or a trinket. Strip carpet and mine ore the same way.
+2. Press C and craft planks, a wooden pickaxe and axe, then a workbench. Place it from the hotbar with left click.
+3. Near the workbench, make gears, electrum plate, wire and a machine frame.
+4. Lay a belt and drop a smelter onto it so ore becomes ingots as it rides past. Add a presser for plates. Chain processors to keep up with the belt.
+5. Build a wood generator and fuel it. Watch the PWR meter, since overbuilding browns out the grid.
+6. Press I to equip trinkets into the 10 slots. Build a tinker bench to fuse them into stronger gear.
+7. Dark rooms have enemies. Make a musket, bow, or auto-turret, and use the cauldron to turn brimstone and powder into black sulfur for ammo. Eat food and place a bedroll to respawn there.
+8. Expand into the crusher, assembler, crucible, loom and animal pen. Find schematics in libraries for alternate recipes.
+
+The same guide is in the game itself: click the GUIDE button or press H.
+</details>
+
 ## What's in it
 - An infinite, streamed, non-euclidean world with a vision-cone fog of war and
   rendering that draws through the folds.

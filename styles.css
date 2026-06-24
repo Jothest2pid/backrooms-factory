@@ -341,3 +341,40 @@ html, body {
 .ecell .sw { width: 22px; height: 22px; border: 1px solid rgba(0,0,0,0.4); margin-top: 3px; }
 .icell.equipable { cursor: pointer; border-color: var(--amber); }
 .icell.equipable:hover { background: rgba(216,207,140,0.15); }
+
+/* ---- how-to-progress guide ---- */
+#guide-btn {
+  position: fixed;
+  right: 18px;
+  bottom: 16px;
+  z-index: 13;
+  font-family: inherit;
+  font-size: 12px;
+  letter-spacing: 1px;
+  padding: 6px 12px;
+  color: var(--amber);
+  background: rgba(18, 17, 9, 0.85);
+  border: 1px solid var(--amber-dim);
+  cursor: pointer;
+}
+#guide-btn:hover { color: #fff; border-color: var(--amber); }
+#guide {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 16;
+  width: 540px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: rgba(10, 10, 8, 0.96);
+  border: 1px solid var(--amber-dim);
+  box-shadow: 0 0 50px rgba(0,0,0,0.7), inset 0 0 30px rgba(0,0,0,0.5);
+  padding: 18px 22px;
+  font-size: 13px;
+}
+#guide.hidden { display: none; }
+#guide .guide-body { margin-top: 10px; line-height: 1.55; }
+#guide .guide-body p { margin-bottom: 11px; color: var(--amber); }
+#guide .guide-body b { color: #fff; }
