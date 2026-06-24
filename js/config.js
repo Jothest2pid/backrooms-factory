@@ -13,7 +13,7 @@ export const TRAVERSE_COOLDOWN = 0.08;
 // world — infinite, streamed: rooms (the "chunks") generate lazily behind doors
 export const STREAM_DEPTH = 3;  // how many rooms ahead of the player to keep loaded
 export const DOOR_W = 1.3;      // door opening width
-export const PLAYER_R = 0.35;
+export const PLAYER_R = 0.3; // tuned so the slim side-facing sprite sits flush to walls
 
 // room sizing
 export const ROOM_MIN = 9;

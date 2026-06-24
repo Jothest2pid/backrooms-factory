@@ -12,7 +12,7 @@ const sheet = new Image();
 let ready = false;
 let trims = null;                 // [row*3+col] -> {sx,sy,sw,sh} content rect in px
 const COLS = 3, ROWS = 4, CELL = 32;
-const CELLW = 1.5;                // world size a full 32px cell maps to
+const CELLW = 1.7;                // world size a full 32px cell maps to
 const FOOT = 0.34;                // how far below the position the feet sit
 
 sheet.onload = () => { computeTrims(); ready = true; };
