@@ -22,7 +22,7 @@ import { sfx } from "./audio.js";
 import { telemetry } from "./telemetry.js";
 
 // resources you "use" by selecting them and left-clicking (no dedicated key)
-const EDIBLE = { food: 12, bread: 18, meat: 22, egg: 8, milk: 10, tonic: 45 };
+const EDIBLE = { food: 12, bread: 18, meat: 22, egg: 8, milk: 10, tonic: 45, bandages: 30, coffee: 8 };
 const USABLE = new Set(["string", "almond_water", ...Object.keys(EDIBLE)]);
 // thrown weapons that can sit on the hotbar and be lobbed with left-click
 const THROWN = new Set(["grenade", "molotov"]);
