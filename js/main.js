@@ -14,6 +14,7 @@ import { CraftUI } from "./ui/craft.js";
 import { onSpritesReady } from "./render/sprites.js";
 import { onFloorReady } from "./render/floor.js";
 import { telemetry } from "./sim/telemetry.js";
+import { resumeAudio } from "./sim/audio.js";
 
 const canvas = document.getElementById("game");
 const renderer = new Renderer(canvas);
@@ -161,6 +162,7 @@ const intro = document.getElementById("intro");
 function start() {
   if (started) return;
   started = true;
+  resumeAudio(); // unlock WebAudio on the start-button gesture (autoplay policy)
   last = performance.now();
   intro.classList.add("hidden");
 }

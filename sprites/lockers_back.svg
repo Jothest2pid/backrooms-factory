@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 170">
+  <!-- back of the locker bank: plain riveted panels, column seams, no doors -->
+  <rect x="3" y="3" width="54" height="164" fill="#3f4d5a" stroke="#2a3540" stroke-width="3"/>
+  <line x1="21" y1="5" x2="21" y2="165" stroke="#33414e" stroke-width="2"/>
+  <line x1="39" y1="5" x2="39" y2="165" stroke="#33414e" stroke-width="2"/>
+  <g fill="#2a3540">
+    <circle cx="8" cy="12" r="1.6"/><circle cx="52" cy="12" r="1.6"/>
+    <circle cx="8" cy="85" r="1.6"/><circle cx="52" cy="85" r="1.6"/>
+    <circle cx="8" cy="158" r="1.6"/><circle cx="52" cy="158" r="1.6"/>
+  </g>
+</svg>

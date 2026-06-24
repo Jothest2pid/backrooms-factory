@@ -17,6 +17,7 @@ import { computePower } from "./power.js";
 import { tickTransport } from "./logistics.js";
 import { spawnMobs, tickMobs, meleeMob, fireMusket, fireBow, throwExplosive, tickTurrets } from "./mobs.js";
 import { rollLoot } from "./loot.js";
+import { sfx } from "./audio.js";
 
 import { telemetry } from "./telemetry.js";
 
@@ -88,7 +89,7 @@ export class Game {
     this.equip[key] = item;
     this.inventory[item] -= 1;
     this.recalcMax();
-    this.lastEvent = `equipped ${itemName(item)}`;
+    sfx("equip"); this.lastEvent = `equipped ${itemName(item)}`;
     return true;
   }
   unequip(key) {
@@ -97,7 +98,7 @@ export class Game {
     this.give(it, 1);
     this.equip[key] = null;
     this.recalcMax();
-    this.lastEvent = `unequipped ${itemName(it)}`;
+    sfx("equip"); this.lastEvent = `unequipped ${itemName(it)}`;
   }
   recalcMax() {
     this.maxHealth = this.baseMaxHealth + this.effect("maxhp");
@@ -115,7 +116,7 @@ export class Game {
     np.y = Math.max(r, Math.min(this.current.h - r, np.y));
     np = this.pushOutOfSolids(this.current, np, r);
     this.player.pos = np;
-    this._blink = { t: 0.15 };
+    this._blink = { t: 0.15 }; sfx("blink");
     this.lastEvent = "blink!";
   }
 
@@ -124,6 +125,8 @@ export class Game {
     if (this.god) return;
     n = Math.max(1, n - this.effect("defense")); // armor soaks damage (min 1)
     this.health = Math.max(0, this.health - n);
+    this._hurt = 0.35;  // red screen flash (visual feedback)
+    sfx("hurt");        // + auditory
     if (this.health <= 0) this.respawn();
   }
 
@@ -144,7 +147,7 @@ export class Game {
     this.inventory.almond_water -= 1;
     this.health = Math.min(this.maxHealth, this.health + 20);
     this.stamina = this.maxStamina;
-    this.lastEvent = "drank almond water (+20 HP)";
+    sfx("eat"); this.lastEvent = "drank almond water (+20 HP)";
   }
 
   // fire/throw the equipped ranged weapon toward a world-space aim point
@@ -182,7 +185,7 @@ export class Game {
     applyCraft(this.inventory, r);
     this.discovered.add(r.out[0]);
     this.addToHotbar(r.out[0]);
-    telemetry.log("craft", { item: r.out[0] });
+    telemetry.log("craft", { item: r.out[0] }); sfx("craft");
     this.lastEvent = `crafted ${itemName(r.out[0])}`;
     return true;
   }
@@ -236,7 +239,7 @@ export class Game {
     this.inventory[item] -= 1;
     const heal = EDIBLE[item] || 10;
     this.health = Math.min(this.maxHealth, this.health + heal);
-    this.lastEvent = `ate ${itemName(item)} (+${heal} HP)`;
+    sfx("eat"); this.lastEvent = `ate ${itemName(item)} (+${heal} HP)`;
   }
 
   // chip a pillar down for concrete (needs a pickaxe); scoop almond water from pools
@@ -244,7 +247,7 @@ export class Game {
     const room = this.current;
     if (hovered.info && hovered.info.name === "Almond-water pool") {
       this.give("almond_water", 1);
-      this.lastEvent = "scooped almond water (+1) — press F to drink";
+      sfx("pickup"); this.lastEvent = "scooped almond water (+1) — press F to drink";
       return;
     }
     const ft = room.features.find((f) => f.type === "pillar" && Math.abs(f.x - hovered.x) < 0.01 && Math.abs(f.y - hovered.y) < 0.01);
@@ -255,7 +258,7 @@ export class Game {
     room.features.splice(room.features.indexOf(ft), 1);
     room.solids = room.solids.filter((s) => !(s.type === "circle" && Math.abs(s.x - ft.x) < 0.01 && Math.abs(s.y - ft.y) < 0.01));
     room._chunks = null;
-    this.give("concrete", 4);
+    this.give("concrete", 4); sfx("mine");
     this.lastEvent = "mined pillar (+4 concrete)";
   }
 
@@ -265,15 +268,16 @@ export class Game {
     const spec = disassembleSpec(f.type);
     if (f.hp === undefined) f.hp = spec.hp;
     f.hp -= toolStats(this.equippedTool()).fell; // axe bites harder than a fist
-    if (f.hp > 0) { this.lastEvent = `${itemInfo(f.type).name} — ${f.hp} hit${f.hp > 1 ? "s" : ""} left`; return; }
+    if (f.hp > 0) { sfx("hit"); this.lastEvent = `${itemInfo(f.type).name} — ${f.hp} hit${f.hp > 1 ? "s" : ""} left`; return; }
     const i = room.furniture.indexOf(f);
     if (i >= 0) room.furniture.splice(i, 1);
     room.solids = room.solids.filter((s) => s.furn !== f);
     room._chunks = null;
     const got = [];
     for (const [res, n] of Object.entries(spec.drops)) { this.give(res, n); got.push(`${n} ${res}`); }
+    sfx("break");
     const loot = rollLoot(room.type, this.effect("luck")); // treasure/junk pull
-    if (loot) { this.give(loot, 1); got.push(itemName(loot)); telemetry.log("loot", { item: loot }); }
+    if (loot) { this.give(loot, 1); got.push(itemName(loot)); telemetry.log("loot", { item: loot }); sfx("pickup"); }
     this.lastEvent = `disassembled ${itemInfo(f.type).name} (+${got.join(", ")})`;
   }
 
@@ -292,7 +296,7 @@ export class Game {
     room._mat = null; room._chunks = null;
     const yld = curve ? Math.ceil(spec.yield / 2) : spec.yield;
     this.give(spec.resource, yld);
-    telemetry.log("mine", { ore: spec.resource });
+    telemetry.log("mine", { ore: spec.resource }); sfx("mine");
     this.lastEvent = `mined ${spec.name} (+${yld} ${spec.resource})`;
   }
 
@@ -308,7 +312,7 @@ export class Game {
     if (!d) room.damage.push({ tx, ty, torn: true });   // intact -> torn
     else { d.bare = true; d.wet = false; d.torn = false; } // torn/wet -> bare concrete
     room._mat = null; room._chunks = null;
-    this.give("carpet", yield_);
+    this.give("carpet", yield_); sfx("strip");
     this.lastEvent = (d ? "stripped to concrete" : "tore up carpet") + " (+carpet)";
   }
 
@@ -322,7 +326,7 @@ export class Game {
     room.furniture.splice(i, 1);
     room.solids = room.solids.filter((s) => s.furn !== f);
     room._chunks = null; // furniture is baked — re-bake without it
-    this.held = f;
+    this.held = f; sfx("pickup");
     this.lastEvent = "carrying furniture — click a clear tile to drop";
   }
 
@@ -334,7 +338,7 @@ export class Game {
     room.furniture.push(f);
     room.solids.push({ type: "rect", x: f.x - f.w / 2, y: f.y - f.h / 2, w: f.w, h: f.h, furn: f });
     room._chunks = null; // furniture is baked — re-bake with it
-    this.held = null;
+    this.held = null; sfx("place");
     this.lastEvent = "placed furniture";
     return true;
   }
@@ -376,7 +380,7 @@ export class Game {
     this.inventory[item] -= 1;
     telemetry.log("place", { item });
     if (item === "bedroll") { this.spawn = { room: this.current.id, x: tx + 0.5, y: ty + 0.5 }; this.lastEvent = "bedroll set — you'll respawn here"; return true; }
-    this.lastEvent = `placed ${spec.name}`;
+    sfx("place"); this.lastEvent = `placed ${spec.name}`;
     return true;
   }
 
@@ -390,7 +394,7 @@ export class Game {
     set.add(key);
     room._chunks = null;
     this.inventory[item] -= 1;
-    this.lastEvent = kind === "floor" ? "laid flooring" : "hung wallpaper";
+    sfx("place"); this.lastEvent = kind === "floor" ? "laid flooring" : "hung wallpaper";
     return true;
   }
 
@@ -405,7 +409,7 @@ export class Game {
     for (const buf of [e.input, e.output, e.store])
       for (const [it, n] of Object.entries(buf || {})) if (n > 0) this.give(it, n);
     for (const m of e.modules || []) this.give(m, 1); // refund slotted modules
-    this.lastEvent = `deconstructed ${itemName(e.type)}`;
+    sfx("deconstruct"); this.lastEvent = `deconstructed ${itemName(e.type)}`;
   }
 
   // left-click on a placed entity: insert a held module, else drive machine logic
@@ -497,6 +501,7 @@ export class Game {
     tickMobs(this, dt);                       // hostiles chase + bite
     if (this._muzzle) { this._muzzle.t -= dt; if (this._muzzle.t <= 0) this._muzzle = null; }
     if (this._blast) { this._blast.t -= dt; if (this._blast.t <= 0) this._blast = null; }
+    if (this._hurt) this._hurt -= dt;
 
     // door traversal: crossed a wall line inside an opening
     let door = null;

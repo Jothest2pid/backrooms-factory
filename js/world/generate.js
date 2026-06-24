@@ -22,7 +22,7 @@ import { buildOre } from "./ore.js";
 // build a fully-populated room (content only — no doors yet)
 function makeRoom(world, keepFree, force = false) {
   const rng = world.rng;
-  let { type, w, h, dark } = rollType(rng, force);
+  let { type, w, h, height, dark } = rollType(rng, force);
   let behavior = null;
   if (type === "yellow") {
     const roll = rng();
@@ -32,6 +32,7 @@ function makeRoom(world, keepFree, force = false) {
   const palette = paletteFor(type, PALETTES[Math.floor(rng() * PALETTES.length)]);
   const room = new Room(world.rooms.length, w, h, palette);
   room.type = type; room.dark = dark; room.behavior = behavior;
+  room.height = height || 1; // ceiling height multiplier (renderer scales walls by it)
   maybeOrganic(rng, room, keepFree);
   buildStructural(rng, room);
   buildItems(rng, room);

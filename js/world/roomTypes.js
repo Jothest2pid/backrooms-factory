@@ -25,6 +25,10 @@ export function rollType(rng, force = false) {
   const type = force === true ? "yellow" : (typeof force === "string" ? force : pickType(rng));
   let w = between(rng, ROOM_MIN, ROOM_MAX);
   let h = between(rng, ROOM_MIN, ROOM_MAX);
+  // ceiling height multiplier (1 = standard). Tall rooms read as cavernous: the
+  // 3D wall band drawn by the renderer scales with this. Pools and suburb "house"
+  // rooms feel big and open, so they get high ceilings.
+  let height = 1;
 
   switch (type) {
     case "pipe": { // long, very thin corridor
@@ -33,11 +37,11 @@ export function rollType(rng, force = false) {
       break;
     }
     case "pillar": w = between(rng, 22, 30); h = between(rng, 22, 30); break;
-    case "pool":   w = between(rng, 18, 26); h = between(rng, 18, 26); break;
-    case "suburb": w = between(rng, 18, 26); h = between(rng, 18, 26); break;
+    case "pool":   w = between(rng, 18, 26); h = between(rng, 18, 26); height = 2.4; break;
+    case "suburb": w = between(rng, 18, 26); h = between(rng, 18, 26); height = 2.6; break;
     case "library":w = between(rng, 14, 20); h = between(rng, 14, 20); break;
     case "hub":    w = between(rng, 12, 16); h = between(rng, 12, 16); break;
     case "christmas": w = between(rng, 12, 16); h = between(rng, 12, 16); break;
   }
-  return { type, w, h, dark: type === "christmas" };
+  return { type, w, h, height, dark: type === "christmas" };
 }

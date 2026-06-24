@@ -11,7 +11,7 @@
 //    swap in a dedicated thin "_side" sprite.
 
 import { ITEMS } from "../world/items.js";
-import { getSprite } from "./sprites.js";
+import { getSprite, hasVariant } from "./sprites.js";
 import { poly } from "./shape.js";
 
 // tall pieces that read as upright billboards: turning them to the side keeps
@@ -32,31 +32,53 @@ export function drawFurniture(ctx, f) {
   const facing = f.facing ?? (f.orient === "front" ? 0 : 3);
   const side = facing === 1 || facing === 3;
 
-  if (STANDING.has(f.type)) { drawStanding(ctx, f, side); return; }
+  if (f.type === "house") { drawBuilding(ctx, f, facing, side); return; }
+  if (STANDING.has(f.type)) { drawStanding(ctx, f, facing); return; }
 
-  // flat piece: fill the footprint, mirror for up/left
-  const img = getSprite(f.type, side ? "side" : "front") || getSprite(f.type);
+  // flat piece: fill the footprint. Up uses a real _back sprite if it exists,
+  // else mirrors the front vertically; left mirrors the side.
+  let img, flipH = false, flipV = false;
+  if (side) { img = getSprite(f.type, "side") || getSprite(f.type); flipH = facing === 1; }
+  else if (facing === 2 && hasVariant(f.type, "back")) { img = getSprite(f.type, "back"); }
+  else if (facing === 2) { img = getSprite(f.type); flipV = true; }
+  else { img = getSprite(f.type); }
   if (!img) { fallback(ctx, f); return; }
   ctx.save();
   ctx.translate(f.x, f.y);
-  if (facing === 2) ctx.scale(1, -1);
-  else if (facing === 1) ctx.scale(-1, 1);
+  if (flipH || flipV) ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
   ctx.drawImage(img, -f.w / 2, -f.h / 2, f.w, f.h);
   ctx.restore();
 }
 
 // a tall billboard standing on its tile: same height front-on or side-on, just
-// thinner from the side (vertical-axis rotation), using the _side sprite.
-function drawStanding(ctx, f, side) {
+// thinner from the side (vertical-axis rotation). Up uses the _back sprite.
+function drawStanding(ctx, f, facing) {
+  const side = facing === 1 || facing === 3;
   const H = Math.max(f.w, f.h);          // standing height — preserved either way
   const frontW = Math.min(f.w, f.h);     // width of the front face
   const drawW = side ? Math.min(frontW * 0.72, 0.95) : frontW;
-  const img = side ? (getSprite(f.type, "side") || getSprite(f.type)) : getSprite(f.type);
+  let img;
+  if (side) img = getSprite(f.type, "side") || getSprite(f.type);
+  else if (facing === 2 && hasVariant(f.type, "back")) img = getSprite(f.type, "back");
+  else img = getSprite(f.type);
   if (!img) { fallback(ctx, f); return; }
   ctx.save();
   ctx.translate(f.x, f.y);
   ctx.drawImage(img, -drawW / 2, -H / 2, drawW, H);
   ctx.restore();
+}
+
+// houses are buildings: drawn anchored at the footprint's bottom and extended UP
+// a modest amount so walls + roof rise above the floor footprint.
+function drawBuilding(ctx, f, facing, side) {
+  let img;
+  if (side) img = getSprite("house", "side") || getSprite("house");
+  else if (facing === 2 && hasVariant("house", "back")) img = getSprite("house", "back");
+  else img = getSprite("house");
+  if (!img) { fallback(ctx, f); return; }
+  const extra = Math.min(f.h * 0.45, 1.1); // modest rise above the footprint
+  const w = f.w, h = f.h + extra, bottom = f.y + f.h / 2;
+  ctx.drawImage(img, f.x - w / 2, bottom - h, w, h);
 }
 
 function fallback(ctx, f) {

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 70 170">
+  <!-- back of a bookshelf: a plain wood backboard with faint shelf lines -->
+  <rect x="3" y="3" width="64" height="164" fill="#4a3219" stroke="#34230f" stroke-width="4"/>
+  <g stroke="#3a2613" stroke-width="2">
+    <line x1="6" y1="46" x2="64" y2="46"/><line x1="6" y1="86" x2="64" y2="86"/><line x1="6" y1="126" x2="64" y2="126"/>
+  </g>
+  <g stroke="#564030" stroke-width="1"><line x1="20" y1="6" x2="20" y2="164"/><line x1="48" y1="6" x2="48" y2="164"/></g>
+</svg>

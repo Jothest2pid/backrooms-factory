@@ -169,6 +169,19 @@ export class Renderer {
     // it is fogged (near-black in dark rooms, dim otherwise). Lights cut through.
     this.drawVision(game);
 
+    // hurt flash: a red screen-space vignette that fades with game._hurt (visual
+    // partner to the "hurt" sound) — strongest at the edges so it reads as pain
+    // without blinding the play area.
+    if (game._hurt > 0) {
+      ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+      const a = Math.min(0.55, game._hurt / 0.35 * 0.55);
+      const g = ctx.createRadialGradient(this.cw / 2, this.ch / 2, this.ch * 0.25, this.cw / 2, this.ch / 2, this.ch * 0.7);
+      g.addColorStop(0, "rgba(180,10,10,0)");
+      g.addColorStop(1, `rgba(180,10,10,${a})`);
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, this.cw, this.ch);
+    }
+
     // periodically release baked bitmaps for rooms that scrolled off screen
     if (this._frame % 120 === 0) this.cullOffscreen(game.rooms);
   }
@@ -383,7 +396,8 @@ export class Renderer {
   drawRoomWalls(ctx, room, xf) {
     const p = room.palette || {};
     const x0 = xf.t.x, y0 = xf.t.y;
-    const TOP = 1.3, BOT = 0.5;
+    const hm = room.height || 1;            // ceiling height multiplier (tall pools/houses)
+    const TOP = 1.3 * hm, BOT = 0.5 + (hm - 1) * 0.35; // top scales fully; bottom rises a touch
 
     // wall segments along an x-axis edge, leaving gaps where doors are
     const segs = (side) => {
@@ -394,8 +408,16 @@ export class Renderer {
       if (cx < room.w) out.push([cx, room.w]);
       return out;
     };
+    // a vertical wall band: flat fill + a top-down shade gradient so a tall wall
+    // reads as a rising surface (3D), not a flat stripe. Lit trim caps the top.
     const band = (a, b, by, bh) => {
       ctx.fillStyle = p.wall || "#cfc77f"; ctx.fillRect(x0 + a, by, b - a, bh);
+      if (bh > 0.7) { // tall enough to shade — darker toward the base
+        const g = ctx.createLinearGradient(0, by, 0, by + bh);
+        g.addColorStop(0, "rgba(255,255,255,0.10)");
+        g.addColorStop(1, "rgba(0,0,0,0.30)");
+        ctx.fillStyle = g; ctx.fillRect(x0 + a, by, b - a, bh);
+      }
       ctx.fillStyle = p.trim || "#8d8645"; ctx.fillRect(x0 + a, by, b - a, 0.1); // lit top edge
     };
     for (const [a, b] of segs("N")) band(a, b, y0 - TOP, TOP);            // tall top wall

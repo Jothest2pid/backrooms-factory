@@ -1,8 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <!-- chair from the side: tall back on the left, seat to the right -->
-  <ellipse cx="54" cy="90" rx="26" ry="6" fill="#000" fill-opacity="0.22"/>
-  <rect x="28" y="16" width="15" height="70" rx="3" fill="#8a6a40" stroke="#4a3620" stroke-width="3"/>
+  <!-- chair from the side: backrest rises from the seat (NOT to the floor); legs below -->
+  <ellipse cx="52" cy="90" rx="26" ry="6" fill="#000" fill-opacity="0.22"/>
+  <!-- backrest: top at y16, bottom meets the seat at ~y56 -->
+  <rect x="28" y="16" width="15" height="42" rx="3" fill="#8a6a40" stroke="#4a3620" stroke-width="3"/>
+  <!-- seat slab -->
   <rect x="28" y="54" width="44" height="16" rx="3" fill="#7a5a36" stroke="#4a3620" stroke-width="3"/>
-  <rect x="64" y="68" width="8" height="18" fill="#5e4326"/>
-  <rect x="30" y="68" width="8" height="18" fill="#5e4326"/>
+  <!-- legs from the seat down to the floor -->
+  <rect x="31" y="70" width="8" height="16" fill="#5e4326"/>
+  <rect x="63" y="70" width="8" height="16" fill="#5e4326"/>
 </svg>

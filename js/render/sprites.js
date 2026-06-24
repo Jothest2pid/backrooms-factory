@@ -10,12 +10,15 @@ const TYPES = [
   "bookshelf", "shelving", "counter", "lockers", "couch", "bed", "boxes",
   "pallet", "drum", "electricalPanel", "serverRack", "computer", "vending",
   "waterCooler", "sink", "trash", "pottedPlant", "christmasTree",
-  // directional variants (base sprite serves the "side"/wide orientation)
-  "cubicle_side", "cubicle_front", "house_side", "house_front",
-  // tall standing pieces: base = front, _side = thin vertical-axis profile
+  "cubicle", "house", // base = the front/down view (no separate _front files)
+  // _side (left/right) and _back (away) directional variants
+  "cubicle_side", "house_side",
   "lockers_side", "bookshelf_side", "filingCabinet_side", "shelving_side",
   "serverRack_side", "vending_side", "electricalPanel_side",
-  "chair_side",
+  "chair_side", "officeChair_side", "computer_side", "whiteboard_side",
+  "chair_back", "lockers_back", "bookshelf_back", "filingCabinet_back",
+  "shelving_back", "serverRack_back", "vending_back", "electricalPanel_back",
+  "cubicle_back", "house_back", "officeChair_back", "computer_back",
 ];
 const FALLBACK = "box";
 
@@ -41,6 +44,11 @@ export function getSprite(type, orient) {
   if (loaded.has(type)) return cache[type];
   if (loaded.has(FALLBACK)) return cache[FALLBACK];
   return null;
+}
+
+// is a specific variant (e.g. "back") actually loaded, not just the base?
+export function hasVariant(type, orient) {
+  return loaded.has(`${type}_${orient}`);
 }
 
 export function onSpritesReady(cb) {

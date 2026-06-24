@@ -4,6 +4,7 @@
 // think while you're in their room.
 
 import { dist } from "../core/vec.js";
+import { sfx } from "./audio.js";
 
 // rotate angle `cur` toward `target` by at most `step` radians (shortest way)
 function turnToward(cur, target, step) {
@@ -111,7 +112,7 @@ export function fireMusket(game, aim) {
     const da = Math.abs(((a - ang + Math.PI) % (2 * Math.PI)) - Math.PI);
     if (da < cone && d < bestD) { best = m; bestD = d; }
   }
-  game._muzzle = { x: p.x, y: p.y, ang, t: 0.1 };
+  game._muzzle = { x: p.x, y: p.y, ang, t: 0.1 }; sfx("shoot");
   const name = rifle ? "rifle" : "musket";
   if (best) { best.hp -= dmg; game.lastEvent = best.hp <= 0 ? `${name} — kill!` : `${name} hit!`; game.current.mobs = game.current.mobs.filter((m) => m.hp > 0); }
   else game.lastEvent = `${name} — missed`;
@@ -129,7 +130,7 @@ export function fireBow(game, aim) {
     const a = Math.atan2(m.y - p.y, m.x - p.x);
     if (Math.abs(((a - ang + Math.PI) % (2 * Math.PI)) - Math.PI) < 0.2 && d < bd) { best = m; bd = d; }
   }
-  game._muzzle = { x: p.x, y: p.y, ang, t: 0.1 };
+  game._muzzle = { x: p.x, y: p.y, ang, t: 0.1 }; sfx("bow");
   if (best) { best.hp -= 30; game.lastEvent = best.hp <= 0 ? "arrow — kill!" : "arrow hit!"; game.current.mobs = game.current.mobs.filter((m) => m.hp > 0); }
   else game.lastEvent = "arrow — missed";
 }
@@ -144,7 +145,7 @@ export function throwExplosive(game, item, aim) {
     if (Math.hypot(m.x - aim.x, m.y - aim.y) <= r) { m.hp -= dmg; hit++; }
   }
   game.current.mobs = (game.current.mobs || []).filter((m) => m.hp > 0);
-  game._blast = { x: aim.x, y: aim.y, r, t: 0.25 };
+  game._blast = { x: aim.x, y: aim.y, r, t: 0.25 }; sfx("boom");
   game.lastEvent = hit ? `${item} — hit ${hit}!` : `${item} — boom`;
 }
 
