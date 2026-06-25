@@ -28,6 +28,7 @@ export function machineInputs(machine) {
 export function tickMachine(e, dt) {
   const recipes = MACHINE_RECIPES[e.machine];
   if (!recipes) return; // chests / generators have no recipe yet
+  e.input = e.input || {}; e.output = e.output || {}; // harden against partial entities (e.g. reloads)
   const r = recipes.find(
     (rc) => rc.in.every(([it, n]) => (e.input[it] || 0) >= n) && (!rc.fuel || (e.fuel || 0) >= rc.fuel)
   );
