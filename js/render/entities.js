@@ -130,6 +130,8 @@ function drawMachine(ctx, e, x, y, w, h) {
   ctx.fillStyle = "rgba(0,0,0,0.25)";
   ctx.fillRect(x + 0.28, y + 0.28, w - 0.56, h - 0.56);
 
+  drawGlyph(ctx, e.machine, cx, cy); // a faint per-machine mark so each reads distinct
+
   // active glow + progress bar when running
   if (e.active) {
     ctx.fillStyle = "rgba(255,196,80,0.9)";
@@ -149,6 +151,33 @@ function drawMachine(ctx, e, x, y, w, h) {
     ctx.fillStyle = "#ffe27a";
     ctx.beginPath(); ctx.arc(x + w - 0.22, y + 0.22, 0.1, 0, Math.PI * 2); ctx.fill();
   }
+}
+
+// a small symbol per machine kind so recipe-select machines are distinguishable
+// at a glance even before bespoke sprites land. Drawn faint, under the run-glow.
+function drawGlyph(ctx, machine, cx, cy) {
+  ctx.save();
+  ctx.globalAlpha = 0.7;
+  const dot = (dx, dy, r, c) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(cx + dx, cy + dy, r, 0, Math.PI * 2); ctx.fill(); };
+  const tri = (c, up) => { ctx.fillStyle = c; ctx.beginPath(); ctx.moveTo(cx, cy + (up ? -0.18 : 0.18)); ctx.lineTo(cx - 0.16, cy + (up ? 0.12 : -0.12)); ctx.lineTo(cx + 0.16, cy + (up ? 0.12 : -0.12)); ctx.closePath(); ctx.fill(); };
+  switch (machine) {
+    case "forge": case "styforge": tri("#ff7a3a", true); break;                       // flame
+    case "generator": tri("#ffd24a", true); dot(0, 0.06, 0.05, "#5a3a1a"); break;       // fuel flame
+    case "crusher": tri("#c8c8d0", false); tri("rgba(0,0,0,0)", true); break;            // crushing wedge
+    case "assembler": case "styassembler":                                               // gear cross
+      ctx.strokeStyle = "#9ad0ff"; ctx.lineWidth = 0.06;
+      ctx.beginPath(); ctx.moveTo(cx - 0.16, cy); ctx.lineTo(cx + 0.16, cy); ctx.moveTo(cx, cy - 0.16); ctx.lineTo(cx, cy + 0.16); ctx.stroke(); break;
+    case "cauldron": dot(0, 0, 0.17, "#5a3a6a"); dot(-0.05, -0.05, 0.04, "#c89ad8"); break; // bubbling pot
+    case "crucible": dot(0, 0, 0.16, "#d85a2a"); dot(0, 0, 0.07, "#ffd24a"); break;        // molten
+    case "loom":                                                                          // weave
+      ctx.strokeStyle = "#d8c89a"; ctx.lineWidth = 0.04;
+      for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(cx + i * 0.1, cy - 0.16); ctx.lineTo(cx + i * 0.1, cy + 0.16); ctx.stroke(); } break;
+    case "pen": dot(-0.06, 0, 0.08, "#eee"); dot(0.08, -0.02, 0.05, "#eee"); break;        // animal
+    case "planter": tri("#5ac85a", true); dot(0, 0.12, 0.04, "#7a5a30"); break;            // sprout
+    case "mushroom": dot(0, -0.04, 0.13, "#d24a4a"); ctx.fillStyle = "#eee"; ctx.fillRect(cx - 0.03, cy - 0.02, 0.06, 0.14); break; // cap + stem
+    case "worm": ctx.strokeStyle = "#d88aa8"; ctx.lineWidth = 0.05; ctx.beginPath(); ctx.moveTo(cx - 0.16, cy); ctx.quadraticCurveTo(cx, cy - 0.16, cx + 0.16, cy); ctx.stroke(); break; // squiggle
+  }
+  ctx.restore();
 }
 
 function drawTorch(ctx, x, y) {

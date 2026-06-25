@@ -166,6 +166,11 @@ export const RECIPES = [
   { id: "worm_bin", out: ["worm_bin", 1], in: [["plank", 4], ["fabric", 2]], station: "workbench" },
   { id: "compost", out: ["compost", 2], in: [["food", 1]], station: "hand" }, // rot food → fertilizer
 
+  // ===== LATE / UNOBTANIUM TIER — top belt tier + the fold reactor (endgame power) =====
+  { id: "unobtanium_belt", out: ["unobtanium_belt", 2], in: [["foldglass", 1], ["stygian_plate", 1]], station: "workbench" },
+  { id: "unobtanium_arm", out: ["unobtanium_arm", 1], in: [["foldglass", 1], ["motor", 1]], station: "workbench" },
+  { id: "reactor", out: ["reactor", 1], in: [["advanced_frame", 1], ["superconductor", 1], ["foldglass", 1], ["stygian_plate", 2]], station: "workbench" },
+
   // ===== TINKER (needs a tinker bench) — refine duplicates / merge different =====
   // refine: fuse duplicates into a stronger version
   { id: "swift_sneakers", out: ["sprint_boots", 1], in: [["worn_sneakers", 2]], station: "tinker" },

@@ -547,6 +547,11 @@ export const ITEMS = {
   planter:       { name: "Planter", kind: KIND.BUILDABLE, stack: 30, w: 2, h: 1, color: "#6a5a3a", machine: "planter" },
   mushroom_bed:  { name: "Mushroom bed", kind: KIND.BUILDABLE, stack: 30, w: 2, h: 1, color: "#5a6a4a", machine: "mushroom" },
   worm_bin:      { name: "Worm bin", kind: KIND.BUILDABLE, stack: 30, w: 1, h: 1, color: "#6a5a44", machine: "worm" },
+
+  // ---- LATE / UNOBTANIUM TIER: top belt tier + the superconductor's payoff ----
+  unobtanium_belt:{ name: "Fold belt", kind: KIND.BUILDABLE, stack: 200, w: 1, h: 1, color: "#7ad0c0", logi: "belt", speed: 5.0 },
+  unobtanium_arm: { name: "Fold arm", kind: KIND.BUILDABLE, stack: 100, w: 1, h: 1, color: "#6ac0b0", logi: "arm", draw: 3, fast: true },
+  reactor:        { name: "Fold reactor", kind: KIND.BUILDABLE, stack: 10, w: 2, h: 2, color: "#3a6a64", machine: "generator", supply: 120, burns: "black_sulfur" },
 };
 
 export const itemName = (id) => (ITEMS[id] ? ITEMS[id].name : id);
