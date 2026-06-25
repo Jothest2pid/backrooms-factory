@@ -43,5 +43,10 @@ export function rollType(rng, force = false) {
     case "hub":    w = between(rng, 12, 16); h = between(rng, 12, 16); break;
     case "christmas": w = between(rng, 12, 16); h = between(rng, 12, 16); break;
   }
-  return { type, w, h, height, dark: type === "christmas" };
+  // Darkness is the threat: christmas rooms are always unlit, and a slice of the
+  // ordinary rooms go dark too so the "things in the dark", the weapons, and the
+  // light ladder (torch -> lantern -> flashlight) all stay relevant as you explore.
+  // The start room (force === true) is never dark, so you always begin somewhere safe.
+  const dark = type === "christmas" || (force !== true && type !== "hub" && rng() < 0.12);
+  return { type, w, h, height, dark };
 }
