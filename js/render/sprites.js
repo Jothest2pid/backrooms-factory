@@ -29,6 +29,8 @@ const TYPES = [
   "concrete_wall", "stygian_wall", "basalt_wall", "window", "wooden_door",
   "power_pole", "torch", "lantern", "flashlight", "glow_jar", "moth_lantern",
   "portable_lamp", "candle",
+  // belts + arms (authored pointing down; the renderer rotates them by facing)
+  "belt", "arm", "stygian_belt", "stygian_arm", "unobtanium_belt", "unobtanium_arm",
 ];
 const FALLBACK = "box";
 

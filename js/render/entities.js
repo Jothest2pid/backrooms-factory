@@ -16,12 +16,23 @@ export function drawEntities(ctx, room, ox, oy) {
     const x = ox + e.tx, y = oy + e.ty;
     const m = 0.08; // inset
 
-    // belts/arms are directional + animated, so they stay procedural; everything
-    // else uses its SVG sprite as the static body when it's loaded.
     const isLogi = e.logi === "belt" || e.logi === "arm";
-    const img = isLogi ? null : getSprite(e.type);
+    const img = getSprite(e.type);
 
-    if (img) {
+    // belts/arms: the sprite is authored pointing down, so rotate it to the
+    // entity's facing, then overlay the moving items / carried item on top.
+    if (img && isLogi) {
+      const [dx, dy] = DIRV[e.facing || 0];
+      ctx.save();
+      ctx.translate(x + w / 2, y + h / 2);
+      ctx.rotate(Math.atan2(dy, dx) - Math.PI / 2);
+      ctx.drawImage(img, -w / 2, -h / 2, w, h);
+      ctx.restore();
+      if (e.logi === "belt") drawBeltItems(ctx, e, x, y);
+      else drawArmHeld(ctx, e, x, y);
+      continue;
+    }
+    if (img) { // static machine / structure / light body
       ctx.drawImage(img, x, y, w, h);
       // overlay only the DYNAMIC state on top of the static sprite
       if (e.process) procFlash(ctx, e, x, y);
@@ -48,6 +59,26 @@ export function drawEntities(ctx, room, ox, oy) {
     else if (e.type === "power_pole") drawPole(ctx, x, y);
     else if (e.type === "bedroll") drawBedroll(ctx, x, y, w, h);
   }
+}
+
+// items riding a sprite belt (the sprite supplies the surface + chevrons)
+function drawBeltItems(ctx, e, x, y) {
+  if (!e.items) return;
+  const [dx, dy] = DIRV[e.facing || 0], cx = x + 0.5, cy = y + 0.5;
+  for (const it of e.items) {
+    const ix = cx + dx * (it.pos - 0.5), iy = cy + dy * (it.pos - 0.5);
+    ctx.fillStyle = (ITEMS[it.item] && ITEMS[it.item].color) || "#ccc";
+    ctx.fillRect(ix - 0.14, iy - 0.14, 0.28, 0.28);
+    ctx.strokeStyle = "rgba(0,0,0,0.5)"; ctx.lineWidth = 0.03;
+    ctx.strokeRect(ix - 0.14, iy - 0.14, 0.28, 0.28);
+  }
+}
+// the item an arm sprite is carrying, parked on its hand
+function drawArmHeld(ctx, e, x, y) {
+  if (!e.held) return;
+  const [dx, dy] = DIRV[e.facing || 0], cx = x + 0.5, cy = y + 0.5;
+  ctx.fillStyle = (ITEMS[e.held] && ITEMS[e.held].color) || "#ccc";
+  ctx.fillRect(cx + dx * 0.34 - 0.1, cy + dy * 0.34 - 0.1, 0.2, 0.2);
 }
 
 // ---- dynamic-state overlays drawn on top of a static sprite body ----
