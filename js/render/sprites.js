@@ -19,6 +19,16 @@ const TYPES = [
   "chair_back", "lockers_back", "bookshelf_back", "filingCabinet_back",
   "shelving_back", "serverRack_back", "vending_back", "electricalPanel_back",
   "cubicle_back", "house_back", "officeChair_back", "computer_back",
+  // placed machines / structures / lights (drawn by render/entities.js as the
+  // static body; dynamic state — progress, glow, belt items, turret barrel — is
+  // overlaid procedurally on top)
+  "concrete_forge", "stygian_forge", "crusher", "assembler", "stygian_assembler",
+  "wood_generator", "powder_generator", "reactor", "cauldron", "crucible", "loom",
+  "animal_pen", "workbench", "tinker_bench", "planter", "mushroom_bed", "bedroll",
+  "worm_bin", "turret", "chest", "crate", "smelter", "presser", "mill", "washer",
+  "concrete_wall", "stygian_wall", "basalt_wall", "window", "wooden_door",
+  "power_pole", "torch", "lantern", "flashlight", "glow_jar", "moth_lantern",
+  "portable_lamp", "candle",
 ];
 const FALLBACK = "box";
 

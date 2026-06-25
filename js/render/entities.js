@@ -6,6 +6,7 @@
 // world offset under the current transform.
 
 import { ITEMS } from "../sim/registry.js";
+import { getSprite } from "./sprites.js";
 
 export function drawEntities(ctx, room, ox, oy) {
   if (!room.entities || !room.entities.length) return;
@@ -15,7 +16,21 @@ export function drawEntities(ctx, room, ox, oy) {
     const x = ox + e.tx, y = oy + e.ty;
     const m = 0.08; // inset
 
-    // body
+    // belts/arms are directional + animated, so they stay procedural; everything
+    // else uses its SVG sprite as the static body when it's loaded.
+    const isLogi = e.logi === "belt" || e.logi === "arm";
+    const img = isLogi ? null : getSprite(e.type);
+
+    if (img) {
+      ctx.drawImage(img, x, y, w, h);
+      // overlay only the DYNAMIC state on top of the static sprite
+      if (e.process) procFlash(ctx, e, x, y);
+      else if (e.machine === "turret") turretBarrel(ctx, e, x, y, w, h);
+      else if (e.machine && e.machine !== "chest") machineState(ctx, e, x, y, w, h);
+      continue;
+    }
+
+    // procedural body + detail (fallback, and belts/arms)
     ctx.fillStyle = spec.color || "#7a7a82";
     ctx.fillRect(x + m, y + m, w - 2 * m, h - 2 * m);
     ctx.lineWidth = 0.05;
@@ -33,6 +48,31 @@ export function drawEntities(ctx, room, ox, oy) {
     else if (e.type === "power_pole") drawPole(ctx, x, y);
     else if (e.type === "bedroll") drawBedroll(ctx, x, y, w, h);
   }
+}
+
+// ---- dynamic-state overlays drawn on top of a static sprite body ----
+function procFlash(ctx, e, x, y) { // belt processor fires
+  if (e._flash > 0) { ctx.fillStyle = "rgba(255,225,150,0.95)"; ctx.beginPath(); ctx.arc(x + 0.5, y + 0.21, 0.1, 0, Math.PI * 2); ctx.fill(); }
+}
+function machineState(ctx, e, x, y, w, h) { // active glow + progress bar + output pip
+  const cx = x + w / 2, cy = y + h / 2;
+  if (e.active) { ctx.fillStyle = "rgba(255,196,80,0.85)"; ctx.beginPath(); ctx.arc(cx, cy, 0.14, 0, Math.PI * 2); ctx.fill(); }
+  if (e.progress > 0) {
+    const frac = Math.min(1, e.progress / (e._t || 2));
+    ctx.fillStyle = "rgba(0,0,0,0.45)"; ctx.fillRect(x + 0.2, y + h - 0.26, w - 0.4, 0.12);
+    ctx.fillStyle = "#7fe07f"; ctx.fillRect(x + 0.2, y + h - 0.26, (w - 0.4) * frac, 0.12);
+  }
+  if (e.output && Object.values(e.output).some((n) => n > 0)) {
+    ctx.fillStyle = "#ffe27a"; ctx.beginPath(); ctx.arc(x + w - 0.2, y + 0.2, 0.09, 0, Math.PI * 2); ctx.fill();
+  }
+}
+function turretBarrel(ctx, e, x, y, w, h) { // barrel aim + muzzle flash + status pip
+  const cx = x + w / 2, cy = y + h / 2;
+  const a = e._aim != null ? e._aim : -Math.PI / 2;
+  ctx.strokeStyle = "#2a2636"; ctx.lineWidth = 0.12;
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * 0.5, cy + Math.sin(a) * 0.5); ctx.stroke();
+  if (e._flash > 0) { ctx.fillStyle = "rgba(255,225,140,0.95)"; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * 0.55, cy + Math.sin(a) * 0.55, 0.14, 0, Math.PI * 2); ctx.fill(); }
+  if (((e.input && e.input.ammo) || 0) <= 0 || !e.active) { ctx.fillStyle = "#d24a4a"; ctx.beginPath(); ctx.arc(cx, cy, 0.07, 0, Math.PI * 2); ctx.fill(); }
 }
 
 const DIRV = [[0, 1], [-1, 0], [0, -1], [1, 0]]; // facing 0 down,1 left,2 up,3 right
