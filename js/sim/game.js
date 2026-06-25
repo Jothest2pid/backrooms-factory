@@ -339,11 +339,16 @@ export class Game {
     this.lastEvent = "carrying furniture — click a clear tile to drop";
   }
 
-  // drop the held furniture, centred on tile (tx,ty)
+  // drop the held furniture, centred on tile (tx,ty). Validate the WHOLE
+  // footprint (a couch/bed is up to 3 tiles) so it can't clip walls or overlap.
   placeHeld(tx, ty) {
     const room = this.current, f = this.held;
-    if (!f || !canPlace(room, tx, ty)) return false;
-    f.x = tx + 0.5; f.y = ty + 0.5;
+    if (!f) return false;
+    const fx = tx + 0.5, fy = ty + 0.5;
+    const fw = Math.max(1, Math.round(f.w)), fh = Math.max(1, Math.round(f.h));
+    const x0 = Math.floor(fx - fw / 2), y0 = Math.floor(fy - fh / 2);
+    if (!canBuild(room, x0, y0, fw, fh)) { this.lastEvent = "can't drop it there"; return false; }
+    f.x = fx; f.y = fy;
     room.furniture.push(f);
     room.solids.push({ type: "rect", x: f.x - f.w / 2, y: f.y - f.h / 2, w: f.w, h: f.h, furn: f });
     room._chunks = null; // furniture is baked — re-bake with it
@@ -420,6 +425,8 @@ export class Game {
     for (const buf of [e.input, e.output, e.store])
       for (const [it, n] of Object.entries(buf || {})) if (n > 0) this.give(it, n);
     for (const m of e.modules || []) this.give(m, 1); // refund slotted modules
+    if (e.held) this.give(e.held, 1);                 // refund an arm's carried item
+    if (e.items) for (const it of e.items) this.give(it.item, 1); // refund belt lane
     sfx("deconstruct"); this.lastEvent = `deconstructed ${itemName(e.type)}`;
   }
 
@@ -474,10 +481,11 @@ export class Game {
     if (this.god) this.stamina = this.maxStamina;
     else if (running) this.stamina = Math.max(0, this.stamina - 32 * dt);
     else this.stamina = Math.min(this.maxStamina, this.stamina + 18 * dt);
-    // wading through an almond-water pool is slower
+    // wading through an almond-water pool is slower — unless you're flying over it
     const swimming = room.grid && room.tileAt(Math.floor(p.pos.x), Math.floor(p.pos.y)) === TILE.WATER;
+    const flying = this.effect("fly") > 0; // wings / jetpack / cumulus glide over hazards
     const moveMul = 1 + this.effect("move"); // boots/wings/etc.
-    const speed = (running ? RUN : WALK) * (swimming && !this.god ? 0.55 : 1) * Math.max(0.3, moveMul);
+    const speed = (running ? RUN : WALK) * (swimming && !this.god && !flying ? 0.55 : 1) * Math.max(0.3, moveMul);
     let np = add(p.pos, scale(dir, speed * dt));
 
     if (!this.god) {

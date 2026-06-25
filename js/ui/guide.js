@@ -23,16 +23,19 @@ export class Guide {
     if (!started) { this.objEl.classList.add("hidden"); return; }
     const st = progressState(this.game);
 
-    // always-on tracker: current goal + how far along you are
-    const objSig = st.index + "|" + st.completed;
+    // always-on tracker: current goal + how far along you are (or a victory note)
+    const objSig = (st.mastered ? "done" : st.index) + "|" + st.completed;
     if (objSig !== this._objSig) {
       this._objSig = objSig;
       this.objEl.classList.remove("hidden");
-      this.objEl.innerHTML =
-        `<div class="obj-head"><span class="obj-tag">NEXT</span> ${st.current.title}` +
-        `<span class="obj-prog">${st.completed}/${st.total}</span></div>` +
-        `<div class="obj-goal">${st.current.goal}</div>` +
-        `<div class="obj-hint">press <b>H</b> for the full guide</div>`;
+      this.objEl.innerHTML = st.mastered
+        ? `<div class="obj-head"><span class="obj-tag">★</span> Backrooms mastered` +
+          `<span class="obj-prog">${st.completed}/${st.total}</span></div>` +
+          `<div class="obj-goal">You've reached the deep end. Keep building, exploring, and perfecting your loadout.</div>`
+        : `<div class="obj-head"><span class="obj-tag">NEXT</span> ${st.current.title}` +
+          `<span class="obj-prog">${st.completed}/${st.total}</span></div>` +
+          `<div class="obj-goal">${st.current.goal}</div>` +
+          `<div class="obj-hint">press <b>H</b> for the full guide</div>`;
     }
 
     // full guide panel: a checklist that marks where you are

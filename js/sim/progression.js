@@ -57,34 +57,40 @@ export const STAGES = [
     done: (g) => got(g, "machine_frame"),
   },
   {
-    id: "automate", title: "Automate with belts",
-    goal: "Lay a belt, then drop a smelter onto it — ore passing over becomes ingots.",
-    hint: "Craft belts and a smelter. Lay a line of belt (B → belt → left-click), then place the smelter directly ONTO a belt tile. Ore carried past the smelter is processed automatically. Add a presser further down to turn ingots into plate. This is the heart of the factory — chain processors along a belt.",
-    done: (g) => built(g, "smelter") && built(g, "belt"),
-  },
-  {
     id: "power", title: "Generate power",
-    goal: "Build a wood generator and load it with fuel.",
-    hint: "Build a wood generator and left-click it with fuel to feed it. Powered machines (the stygian tier and beyond) draw from the grid. Watch the PWR meter — overbuild and it browns out, slowing everything.",
+    goal: "Build a wood generator and fuel it — belt machines need electricity.",
+    hint: "Build a wood generator and left-click it with fuel (wood, charcoal — anything that burns) to feed it. Belt processors and every industrial machine draw from the room's power grid; with no generator they sit idle. Watch the PWR meter — overbuild and it browns out, slowing everything. (The hand-fed concrete forge is the exception: it needs no power.)",
     done: (g) => built(g, "wood_generator") || built(g, "powder_generator"),
   },
   {
-    id: "defense", title: "Survive the dark",
-    goal: "Craft a bow or musket; brew black sulfur in a cauldron for ammo.",
-    hint: "Dark rooms spawn the blind ones — they chase by sound and struggle with corners. Craft a bow, a musket, or place an auto-turret. Build an alchemy cauldron and brew brimstone + stygian powder into black sulfur, the game's gunpowder, for ammo and grenades. Set a bedroll so death returns you there.",
-    done: (g) => gotAny(g, "bow", "musket", "crossbow", "rifle", "turret") || built(g, "bedroll"),
+    id: "automate", title: "Automate with belts",
+    goal: "Lay a belt, drop a powered smelter onto it — ore passing over becomes ingots.",
+    hint: "Lay a line of belt (B → belt → left-click), then place a smelter directly ONTO a belt tile. With power flowing, ore carried past it smelts automatically. Add a presser for plate and a mill for powder down the line, and chain processors along a fast belt — this is the heart of the factory. Automator arms move items between belts, chests, and machines.",
+    done: (g) => built(g, "smelter") && built(g, "belt"),
   },
   {
-    id: "gear", title: "Tinker your gear",
+    id: "defense", title: "Survive the dark",
+    goal: "Arm yourself — bow / musket / turret — and brew black sulfur for ammo.",
+    hint: "Dark rooms spawn the blind ones; they hunt by sound (stealth gear quiets you) and struggle with corners. Craft a bow, a musket, or place an auto-turret. Build an alchemy cauldron and brew brimstone + stygian powder into BLACK SULFUR — the game's gunpowder — then load it into ammo, grenades, and dynamite. Set a bedroll so death returns you there.",
+    done: (g) => gotAny(g, "bow", "musket", "crossbow", "rifle", "turret") || got(g, "black_sulfur") || built(g, "bedroll"),
+  },
+  {
+    id: "gear", title: "Tinker your treasure",
     goal: "Build a tinker bench; equip trinkets (I) and fuse them into stronger gear.",
-    hint: "Build a tinker bench. Press I to open equipment — you have 10 slots. Equip the trinkets you've looted, then at the tinker bench fuse duplicates into stronger versions or merge different ones into capstones: sprint/hover/blink boots, wings, armor rigs, or the Phone.",
+    hint: "Build a tinker bench. Press I for your 10 equipment slots. Equip looted trinkets, then at the bench REFINE duplicates into stronger tiers or MERGE different ones into capstones — sprint→hover→blink boots, the Walkman→Phone line, the war rig, the reaper's cloak. You also assemble modular guns here from frame + barrel + stock + mag parts.",
     done: (g) => built(g, "tinker_bench"),
   },
   {
-    id: "deep", title: "Go deeper", final: true,
-    goal: "Expand: crusher, assembler, crucible, loom, pen. Find schematics. Make it home.",
-    hint: "You're self-sufficient. Branch out: crusher and assembler for stygian gear, a crucible for alloys, a loom for textiles, an animal pen for food and leather. Find schematics in library rooms for better recipes. Lay flooring and wallpaper to make a base that's yours.",
-    done: () => false, // open-ended endgame
+    id: "industrialize", title: "Go industrial (stygian tier)",
+    goal: "Crush stygium → stygian forge → advanced frames, circuit boards, motors.",
+    hint: "Mine stygium and crush it (mill/crusher) into powder and iron. Build a stygian forge and assembler for stygian plate, gears, and CIRCUIT BOARDS, then ADVANCED FRAMES — the backbone of every late machine. A crucible alloys stygian iron + cobalt into magnetiron → motors. Switch to a powder generator for far more power. Set up farms — planter, mushroom bed, worm bin, animal pen — for a steady supply line.",
+    done: (g) => gotAny(g, "advanced_frame", "circuit_board", "motor"),
+  },
+  {
+    id: "endgame", title: "Master the Backrooms", final: true,
+    goal: "Reach unobtanium: cut FOLDGLASS, build a railgun or the Phone, finish a capstone build.",
+    hint: "The deep end. Mine UNOBTANIUM and cut it with a lens into FOLDGLASS — refractive, volatile, space-bending. From here: a superconductor for lossless power, energy weapons (arc gun, RAILGUN), and the showpiece trinkets — THE PHONE (GPS + fold radar + item info), WINGS or a jetpack, the WAR RIG, the survivor's rig, the reaper's cloak. Assemble a loadout across your 10 slots that fits how you play, build the base you want, and make the non-euclidean sprawl yours.",
+    done: (g) => gotAny(g, "foldglass", "the_phone", "wings", "war_rig", "railgun", "superconductor", "jetpack"),
   },
 ];
 
@@ -105,5 +111,6 @@ export function progressState(game) {
     return { ...s, done, status: i === cur ? "current" : done ? "done" : "upcoming" };
   });
   const completed = stages.filter((s) => s.done).length;
-  return { stages, current: stages[cur], index: cur, completed, total: STAGES.length };
+  const mastered = STAGES[STAGES.length - 1].done(game); // finished the final stage
+  return { stages, current: stages[cur], index: cur, completed, total: STAGES.length, mastered };
 }

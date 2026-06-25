@@ -79,7 +79,7 @@ export function tickTransport(room, dt, ratio) {
     e.items.sort((a, b) => b.pos - a.pos);
     const sp = e.speed || BELT_SPEED; // stygian belts run faster
     for (let i = 0; i < e.items.length; i++) {
-      const cap = i > 0 ? e.items[i - 1].pos - SPACING : 1.0;
+      const cap = i > 0 ? Math.max(0, e.items[i - 1].pos - SPACING) : 1.0; // never push a lane item negative
       e.items[i].pos = Math.min(e.items[i].pos + sp * dt, cap);
     }
     if (e.items.length && e.items[0].pos >= 1) {
@@ -90,6 +90,7 @@ export function tickTransport(room, dt, ratio) {
   // 2. arms transfer behind -> ahead (slower under brownout)
   for (const e of room.entities) {
     if (e.logi !== "arm") continue;
+    if (ratio <= 0) continue; // no power -> arm idle (don't let cool stick negative)
     e.cool = (e.cool || 0) - dt * ratio;
     if (e.cool > 0) continue;
     const [dx, dy] = DIRV[e.facing || 0];
@@ -110,6 +111,7 @@ export function tickTransport(room, dt, ratio) {
   for (const e of room.entities) {
     if (!e.process) continue;
     if (e._flash) e._flash -= dt;
+    if (e.draw && ratio <= 0) continue; // belt processors need power; no grid = idle (not 1-then-freeze)
     e.cool = (e.cool || 0) - dt * (e.draw ? ratio : 1);
     if (e.cool > 0) continue;
     const belt = beltAt(room, e.tx, e.ty);

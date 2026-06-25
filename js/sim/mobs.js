@@ -65,23 +65,29 @@ export function tickMobs(game, dt) {
   const room = game.current, mobs = room.mobs;
   if (!mobs || !mobs.length) return;
   const p = game.player.pos;
+  // stealth: quieter gear (negative `noise`) shrinks how close a mob notices you.
+  // Base 11 tiles; reaper's cloak (-2) -> ~5, so you can actually sneak past.
+  const detect = Math.max(2.5, 11 + (game.effect ? game.effect("noise") : 0) * 3);
   for (const m of mobs) {
     m.cool -= dt;
     const dx = p.x - m.x, dy = p.y - m.y, d = Math.hypot(dx, dy) || 1;
+    const aware = d <= detect; // out of earshot -> mob holds position
     if (m.kind === "blindman") {
       // blind pathing: only re-aims every so often (delay) and turns slowly toward
       // its target heading, so it overshoots corners and can be juked.
-      m._rt = (m._rt || 0) - dt;
-      if (m._rt <= 0) { m._tAng = Math.atan2(dy, dx); m._rt = 0.7; }
-      if (m._hAng == null) m._hAng = m._tAng;
-      m._hAng = turnToward(m._hAng, m._tAng, 2.4 * dt); // ~2.4 rad/s turn rate
-      if (d > 0.5) {
+      if (aware) {
+        m._rt = (m._rt || 0) - dt;
+        if (m._rt <= 0) { m._tAng = Math.atan2(dy, dx); m._rt = 0.7; }
+        if (m._hAng == null) m._hAng = m._tAng;
+        m._hAng = turnToward(m._hAng, m._tAng, 2.4 * dt); // ~2.4 rad/s turn rate
+      }
+      if (aware && d > 0.5 && m._hAng != null) {
         const s = m.speed * dt;
         m.x += Math.cos(m._hAng) * s; m.y += Math.sin(m._hAng) * s;
         m.dir = { x: Math.cos(m._hAng), y: Math.sin(m._hAng) };
         m.animClock = (m.animClock || 0) + dt;
       }
-    } else if (d > 0.6) { // other kinds: direct beeline chase
+    } else if (aware && d > 0.6) { // other kinds: direct beeline chase
       const s = m.speed * dt;
       m.x += (dx / d) * s; m.y += (dy / d) * s;
       m.dir = { x: dx / d, y: dy / d };
@@ -120,7 +126,9 @@ export function fireGun(game, aim, id, w) {
   const p = game.player.pos, ang = Math.atan2(aim.y - p.y, aim.x - p.x);
   const cands = targetsInCone(game, ang, w.range, w.cone);
   let hits = 0;
-  for (let i = 0; i < shots && i < cands.length; i++) { cands[i].m.hp -= dmg; hits++; }
+  // scatter pellets / pierce shots beyond the target count pile onto the nearest
+  // mob, so a point-blank shotgun shreds a lone enemy instead of wasting pellets.
+  for (let i = 0; i < shots && cands.length; i++) { cands[Math.min(i, cands.length - 1)].m.hp -= dmg; hits++; }
   game.current.mobs = (game.current.mobs || []).filter((m) => m.hp > 0);
   game._muzzle = { x: p.x, y: p.y, ang, t: 0.1 }; sfx("shoot");
   game.lastEvent = hits ? `${itemName(id)} — hit ${hits}!` : `${itemName(id)} — missed`;

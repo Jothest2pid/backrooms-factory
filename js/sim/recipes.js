@@ -367,14 +367,15 @@ export const MACHINE_RECIPES = {
     { in: [["compost", 2]], out: ["leather", 1], time: 7 },
     { in: [["grain", 3]], out: ["milk", 1], time: 6 },
   ],
-  // crop planter — seeds <-> grain (a renewable food loop)
+  // crop planter — plant a seed, harvest grain and get the seed back (renewable,
+  // but NOT exponential: one seed in keeps yielding grain, it doesn't multiply).
   planter: [
-    { in: [["seeds", 1]], out: ["grain", 2], time: 5 },
-    { in: [["grain", 1]], out: ["seeds", 2], time: 4 },
+    { in: [["seeds", 1]], out: ["grain", 2], time: 5, keep: ["seeds"] },
   ],
-  // dark mushroom bed — spores grow + become food (light-free organics)
+  // dark mushroom bed — grow spores on compost substrate, OR fruit them into food.
+  // (grow needs compost, so the food path below is always reachable on plain spores.)
   mushroom: [
-    { in: [["spores", 1]], out: ["spores", 2], time: 6 },
+    { in: [["spores", 1], ["compost", 1]], out: ["spores", 3], time: 6 },
     { in: [["spores", 2]], out: ["food", 1], time: 4 },
   ],
   // silk worm bin — compost into silk; fabric back into compost
