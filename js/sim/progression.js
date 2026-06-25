@@ -40,8 +40,8 @@ export const STAGES = [
   },
   {
     id: "forge", title: "Build your first smelter",
-    goal: "Build a concrete forge (6 concrete blocks) — it smelts ore without electricity.",
-    hint: "Build a concrete forge — it's the bootstrap smelter, the only one that needs no metal. Place it, then mine electrum ore (golden veins) and left-click the forge with electrum to load it. It smelts electrum into ingots over time; left-click again to collect them.",
+    goal: "Build a concrete forge (6 concrete blocks); feed it electrum ore + fuel.",
+    hint: "Build a concrete forge — it's the bootstrap smelter and needs no electricity, but it does BURN FUEL. Place it, then left-click it with both electrum ore (golden veins) and fuel (wood, charcoal, anything flammable) to load it. It smelts electrum into ingots over time; left-click again to collect them.",
     done: (g) => built(g, "concrete_forge"),
   },
   {

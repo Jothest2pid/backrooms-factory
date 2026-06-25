@@ -85,8 +85,10 @@ export function interactMachine(game, e) {
   for (const [it, n] of Object.entries(e.output)) { if (n > 0) { game.give(it, n); pulled = true; } }
   e.output = {};
   game.lastEvent = pulled ? `collected from ${itemName(e.type)}` : moved ? `loaded ${itemName(e.type)}` : `${itemName(e.type)} idle`;
-  // tell the player WHY a powered machine isn't running (the #1 early confusion)
-  if (e.draw && game.power) {
+  // tell the player WHY a machine isn't running (the #1 early confusion)
+  if (machineInputs(e.machine).has("fuel") && (e.fuel || 0) <= 0)
+    game.lastEvent += " — needs fuel (load wood/charcoal/anything that burns)";
+  else if (e.draw && game.power) {
     if (game.power.ratio <= 0) game.lastEvent += " — needs power: build a wood generator + fuel it";
     else if (game.power.ratio < 1) game.lastEvent += " — brownout (low power, running slow)";
   }
